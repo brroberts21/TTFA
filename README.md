@@ -1,1 +1,1 @@
-# Full-stack project for a local trade fair.
+# The controllers for the admin, events, and vendor classes are complete, so we can begin building the front-end connected to the database. Let me know if you have any problems. I'm going to go to office hours and figure out SQL injection to protect the passwords for all our users.

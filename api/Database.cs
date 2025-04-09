@@ -445,7 +445,8 @@ namespace api
                 booths.Add(new Booth(){
                     ID = reader.GetInt32(0),
                     BoothNumber = reader.GetInt32(1),
-                    BoothAvailability = reader.GetString(2)
+                    BoothAvailability = reader.GetString(2),
+                    Deleted = reader.GetString(3)
                 });
             }
             return booths;
@@ -465,7 +466,8 @@ namespace api
                 Booth booth = new(){
                     ID = reader.GetInt32(0),
                     BoothNumber = reader.GetInt32(1),
-                    BoothAvailability = reader.GetString(2)
+                    BoothAvailability = reader.GetString(2),
+                    Deleted = reader.GetString(3)
                 };
                 return booth;
             }
@@ -474,6 +476,77 @@ namespace api
                 return new Booth();
             }
         }
+
+        public async Task InsertBoothAsync(Booth booth)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"insert into o8gync8ricmopt1y.booth (booth_num, booth_avail, deleted) values (@booth_num, @booth_avail, @deleted);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@booth_num", booth.BoothNumber);
+                command.Parameters.AddWithValue("@booth_avail", "y");
+                command.Parameters.AddWithValue("@deleted", "n");
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task DeleteBoothAsync(int id)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"update booth set deleted = 'y' where (booth_id = @id);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@id", id);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task UpdateBoothAsync(Booth booth)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = "update o8gync8ricmopt1y.booth set booth_num = @booth_num, booth_avail = @booth_avail, deleted = @deleted where booth_id = @id";
+                
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@id", booth.ID);
+                command.Parameters.AddWithValue("@booth_num", booth.BoothNumber);
+                command.Parameters.AddWithValue("@booth_avail", booth.BoothAvailability);
+                command.Parameters.AddWithValue("@deleted", "n");
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
 
     }
 }

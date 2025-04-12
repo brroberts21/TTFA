@@ -437,7 +437,7 @@ namespace api
             using var connection = new MySqlConnection(cs);
             await connection.OpenAsync();
 
-            using var command = new MySqlCommand("SELECT * FROM o8gync8ricmopt1y.booth where deleted = 'n';", connection);
+            using var command = new MySqlCommand(@"SELECT * FROM o8gync8ricmopt1y.booth where deleted = 'n';", connection);
 
             using var reader = await command.ExecuteReaderAsync();
             while(await reader.ReadAsync())
@@ -546,6 +546,161 @@ namespace api
                 Console.WriteLine(e.Message);
             }
         }
+
+        public async Task<List<Uses>> GetAllUsesAsync()
+        {
+            List<Uses> uses = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select u.event_id, u.vendor_id, u.booth_id,
+                event_name, vendor_name, booth_num, u.deleted
+            from uses u join events e on u.event_id = e.event_id
+                join vendors v on v.vendor_id = u.vendor_id
+                join booth b on b.booth_id = u.booth_id
+            where u.deleted = 'n'
+            order by u.event_id, u.booth_id;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                uses.Add(new Uses(){
+                    EventId = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    BoothID = reader.GetInt32(2),
+                    EventName = reader.GetString(3),
+                    VendorName = reader.GetString(4),
+                    BoothNumber = reader.GetInt32(5),
+                    Deleted = reader.GetString(6)
+                });
+            }
+            return uses;
+        }
+
+        public async Task<Uses> GetUseAsync(int eventID, int vendorID, int boothID)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand($@"
+                select u.event_id, u.vendor_id, u.booth_id,
+                    event_name, vendor_name, booth_num, u.deleted
+                from uses u join events e on u.event_id = e.event_id
+                    join vendors v on v.vendor_id = u.vendor_id
+                    join booth b on b.booth_id = u.booth_id
+                where u.event_id = {eventID} and u.vendor_id = {vendorID} and u.booth_id = {boothID};", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                await reader.ReadAsync();
+
+                Uses use = new(){
+                    EventId = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    BoothID = reader.GetInt32(2),
+                    EventName = reader.GetString(3),
+                    VendorName = reader.GetString(4),
+                    BoothNumber = reader.GetInt32(5),
+                    Deleted = reader.GetString(6)
+                };
+                return use;
+            }
+            catch
+            {
+                return new Uses();
+            }
+        }
+
+        public async Task InsertUseAsync(Uses use)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"insert into o8gync8ricmopt1y.uses (event_id, vendor_id, booth_id, deleted) values (@event_id, @vendor_id, @booth_id, @deleted);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@event_id", use.EventId);
+                command.Parameters.AddWithValue("@vendor_id", use.VendorID);
+                command.Parameters.AddWithValue("@booth_id", use.BoothID);
+                command.Parameters.AddWithValue("@deleted", "n");
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task DeleteUseAsync(int eventID, int vendorID, int boothID)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $@"
+                UPDATE o8gync8ricmopt1y.uses SET deleted = 'y' WHERE event_id = @event_id and vendor_id = @vendor_id and booth_id = @booth_id;
+                ";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@event_id", eventID);
+                command.Parameters.AddWithValue("@vendor_id", vendorID);
+                command.Parameters.AddWithValue("@booth_id", boothID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task UpdateUseAsync(int oldEventID, int oldVendorID, int oldBoothID, Uses use)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = @"
+                UPDATE o8gync8ricmopt1y.uses 
+                SET event_id = @new_event_id, 
+                    vendor_id = @new_vendor_id, 
+                    booth_id = @new_booth_id, 
+                    deleted = @deleted 
+                WHERE event_id = @old_event_id 
+                AND vendor_id = @old_vendor_id 
+                AND booth_id = @old_booth_id";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@new_event_id", use.EventId);
+                command.Parameters.AddWithValue("@new_vendor_id", use.VendorID);
+                command.Parameters.AddWithValue("@new_booth_id", use.BoothID);
+                command.Parameters.AddWithValue("@deleted", "n");
+
+                command.Parameters.AddWithValue("@old_event_id", oldEventID);
+                command.Parameters.AddWithValue("@old_vendor_id", oldVendorID);
+                command.Parameters.AddWithValue("@old_booth_id", oldBoothID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+
 
 
     }

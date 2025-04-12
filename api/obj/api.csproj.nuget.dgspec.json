@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ben Roberts\\Documents\\Code\\MIS 321\\TTFA\\api\\api.csproj": {}
+    "/Users/erinkiley/TTFA/api/api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ben Roberts\\Documents\\Code\\MIS 321\\TTFA\\api\\api.csproj": {
+    "/Users/erinkiley/TTFA/api/api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ben Roberts\\Documents\\Code\\MIS 321\\TTFA\\api\\api.csproj",
+        "projectUniqueName": "/Users/erinkiley/TTFA/api/api.csproj",
         "projectName": "api",
-        "projectPath": "C:\\Users\\Ben Roberts\\Documents\\Code\\MIS 321\\TTFA\\api\\api.csproj",
-        "packagesPath": "C:\\Users\\Ben Roberts\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ben Roberts\\Documents\\Code\\MIS 321\\TTFA\\api\\obj\\",
+        "projectPath": "/Users/erinkiley/TTFA/api/api.csproj",
+        "packagesPath": "/Users/erinkiley/.nuget/packages/",
+        "outputPath": "/Users/erinkiley/TTFA/api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ben Roberts\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/Users/erinkiley/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,11 +32,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -71,7 +66,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.408/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

@@ -1,0 +1,12 @@
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+}
+
+.mainLogo {
+    height: 500px;
+    width: auto;
+    object-fit: contain;
+}
+

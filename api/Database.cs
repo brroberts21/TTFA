@@ -671,14 +671,14 @@ namespace api
                 await connection.OpenAsync();
 
                 string sql = @"
-                UPDATE o8gync8ricmopt1y.uses 
-                SET event_id = @new_event_id, 
+                update o8gync8ricmopt1y.uses 
+                set event_id = @new_event_id, 
                     vendor_id = @new_vendor_id, 
                     booth_id = @new_booth_id, 
                     deleted = @deleted 
-                WHERE event_id = @old_event_id 
-                AND vendor_id = @old_vendor_id 
-                AND booth_id = @old_booth_id";
+                where event_id = @old_event_id 
+                and vendor_id = @old_vendor_id 
+                and booth_id = @old_booth_id";
 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@new_event_id", use.EventId);
@@ -700,8 +700,148 @@ namespace api
             }
         }
 
+        public async Task<List<Manages>> GetAllManagesAsync()
+        {
+            List<Manages> manages = [];
 
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
 
+            using var command = new MySqlCommand(@"
+            select m.admin_id, m.event_id,
+                concat(admin_first_name, ' ', admin_last_name) as fullname,
+                event_name, m.deleted
+            from manages m join admin a on m.admin_id = a.admin_id
+                join events e on e.event_id = m.event_id
+            where m.deleted = 'n'
+            order by m.admin_id, m.event_id;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                manages.Add(new Manages(){
+                    AdminID = reader.GetInt32(0),
+                    EventID = reader.GetInt32(1),
+                    AdminName = reader.GetString(2),
+                    EventName = reader.GetString(3),
+                    Deleted = reader.GetString(4)
+                });
+            }
+            return manages;
+        }
+
+        public async Task<Manages> GetManageAsync(int adminID, int eventID)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand($@"
+                select m.admin_id, m.event_id,
+                    concat(admin_first_name, ' ', admin_last_name) as fullname,
+                    event_name, m.deleted
+                from manages m join admin a on m.admin_id = a.admin_id
+                    join events e on e.event_id = m.event_id
+                where m.admin_id = {adminID} and m.event_id = {eventID};", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                await reader.ReadAsync();
+
+                Manages manage = new(){
+                    AdminID = reader.GetInt32(0),
+                    EventID = reader.GetInt32(1),
+                    AdminName = reader.GetString(2),
+                    EventName = reader.GetString(3),
+                    Deleted = reader.GetString(4)
+                };
+                return manage;
+            }
+            catch
+            {
+                return new Manages();
+            }
+        }
+
+        public async Task InsertManageAsync(Manages manages)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"insert into o8gync8ricmopt1y.manages (admin_id, event_id, deleted) values (@admin_id, @event_id, @deleted);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@admin_id", manages.AdminID);
+                command.Parameters.AddWithValue("@event_id", manages.EventID);
+                command.Parameters.AddWithValue("@deleted", "n");
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task DeleteManageAsync(int adminID, int eventID)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $@"
+                UPDATE o8gync8ricmopt1y.manages SET deleted = 'y' WHERE event_id = @event_id and admin_id = @admin_id;
+                ";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@event_id", eventID);
+                command.Parameters.AddWithValue("@admin_id", adminID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task UpdateManageAsync(int oldAdminID, int oldEventID, Manages manage)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = @"
+                update o8gync8ricmopt1y.manages 
+                set event_id = @new_event_id, 
+                    admin_id = @new_admin_id, 
+                    deleted = @deleted 
+                where event_id = @old_event_id 
+                and admin_id = @old_admin_id;";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@new_event_id", manage.EventID);
+                command.Parameters.AddWithValue("@new_admin_id", manage.AdminID);
+                command.Parameters.AddWithValue("@deleted", "n");
+
+                command.Parameters.AddWithValue("@old_event_id", oldEventID);
+                command.Parameters.AddWithValue("@old_admin_id", oldAdminID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
 
     }
 }

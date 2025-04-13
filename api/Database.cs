@@ -843,5 +843,240 @@ namespace api
             }
         }
 
+        public async Task<List<Approval>> GetAllApprovalsAsync()
+        {
+            List<Approval> approvals = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select ap.admin_id, ap.vendor_id,
+                concat(admin_first_name, ' ', admin_last_name) as fullname,
+                vendor_name, approval_date
+            from approves ap join admin a on ap.admin_id = a.admin_id
+                join vendors v on v.vendor_id = ap.vendor_id
+            order by ap.vendor_id;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                approvals.Add(new Approval(){
+                    AdminID = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    AdminName = reader.GetString(2),
+                    VendorName = reader.GetString(3),
+                    ApprovalDate = reader.GetDateTime(4)
+                });
+            }
+            return approvals;
+        }
+
+        public async Task<Approval> GetApprovalAsync(int adminID, int vendorID)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand($@"
+                select ap.admin_id, ap.vendor_id,
+                    concat(admin_first_name, ' ', admin_last_name) as fullname,
+                    vendor_name, approval_date
+                from approves ap join admin a on ap.admin_id = a.admin_id
+                    join vendors v on v.vendor_id = ap.vendor_id
+                where ap.admin_id = {adminID} and ap.vendor_id = {vendorID};", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                await reader.ReadAsync();
+
+                Approval approval = new(){
+                    AdminID = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    AdminName = reader.GetString(2),
+                    VendorName = reader.GetString(3),
+                    ApprovalDate = reader.GetDateTime(4)
+                };
+                return approval;
+            }
+            catch
+            {
+                return new Approval();
+            }
+        }
+
+        public async Task InsertApprovalAsync(Approval approval)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"insert into o8gync8ricmopt1y.approves (admin_id, vendor_id, approval_date) values (@admin_id, @vendor_id, @approval_date);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@admin_id", approval.AdminID);
+                command.Parameters.AddWithValue("@vendor_id", approval.VendorID);
+                command.Parameters.AddWithValue("@approval_date", approval.ApprovalDate.Date);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task UpdateApprovalAsync(int oldAdminID, int oldVendorID, Approval approval)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = @"
+                update o8gync8ricmopt1y.approves 
+                set vendor_id = @new_vendor_id, 
+                    admin_id = @new_admin_id, 
+                    approval_date = @approval_date
+                where vendor_id = @old_vendor_id 
+                and admin_id = @old_admin_id;";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@new_vendor_id", approval.VendorID);
+                command.Parameters.AddWithValue("@new_admin_id", approval.AdminID);
+                command.Parameters.AddWithValue("@approval_date", approval.ApprovalDate.Date);
+
+                command.Parameters.AddWithValue("@old_vendor_id", oldVendorID);
+                command.Parameters.AddWithValue("@old_admin_id", oldAdminID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task<List<Deletion>> GetAllDeletionsAsync()
+        {
+            List<Deletion> deletions = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select d.admin_id, d.vendor_id,
+                concat(admin_first_name, ' ', admin_last_name) as fullname,
+                vendor_name, deletion_date
+            from deletes d join admin a on d.admin_id = a.admin_id
+                join vendors v on v.vendor_id = d.vendor_id
+            order by d.vendor_id;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                deletions.Add(new Deletion(){
+                    AdminID = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    AdminName = reader.GetString(2),
+                    VendorName = reader.GetString(3),
+                    DeletionDate = reader.GetDateTime(4)
+                });
+            }
+            return deletions;
+        }
+
+        public async Task<Deletion> GetDeletionAsync(int adminID, int vendorID)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                using var command = new MySqlCommand($@"
+                select d.admin_id, d.vendor_id,
+                    concat(admin_first_name, ' ', admin_last_name) as fullname,
+                    vendor_name, approval_date
+                from deletes d join admin a on d.admin_id = a.admin_id
+                    join vendors v on v.vendor_id = d.vendor_id
+                where d.admin_id = {adminID} and d.vendor_id = {vendorID};", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                await reader.ReadAsync();
+
+                Deletion deletion = new(){
+                    AdminID = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    AdminName = reader.GetString(2),
+                    VendorName = reader.GetString(3),
+                    DeletionDate = reader.GetDateTime(4)
+                };
+                return deletion;
+            }
+            catch
+            {
+                return new Deletion();
+            }
+        }
+
+        public async Task InsertDeletionAsync(Deletion deletion)
+        {
+            try{
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"insert into o8gync8ricmopt1y.deletes (admin_id, vendor_id, deletion_date) values (@admin_id, @vendor_id, @deletion_date);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@admin_id", deletion.AdminID);
+                command.Parameters.AddWithValue("@vendor_id", deletion.VendorID);
+                command.Parameters.AddWithValue("@deletion_date", deletion.DeletionDate.Date);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task UpdateDeletionAsync(int oldAdminID, int oldVendorID, Deletion deletion)
+        {
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = @"
+                update o8gync8ricmopt1y.deletes 
+                set vendor_id = @new_vendor_id, 
+                    admin_id = @new_admin_id, 
+                    deletion_date = @deletion_date
+                where vendor_id = @old_vendor_id 
+                and admin_id = @old_admin_id;";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@new_vendor_id", deletion.VendorID);
+                command.Parameters.AddWithValue("@new_admin_id", deletion.AdminID);
+                command.Parameters.AddWithValue("@deletion_date", deletion.DeletionDate.Date);
+
+                command.Parameters.AddWithValue("@old_vendor_id", oldVendorID);
+                command.Parameters.AddWithValue("@old_admin_id", oldAdminID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+
     }
 }

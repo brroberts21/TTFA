@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using api;
+using api.Models;
 
 namespace MyApp.Namespace
 {
@@ -9,32 +11,38 @@ namespace MyApp.Namespace
     {
         // GET: api/<DeletesController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<List<Deletion>> GetAllDeletionsAsync()
         {
-            return new string[] { "value1", "value2" };
+            Database db = new();
+            return await db.GetAllDeletionsAsync();
         }
 
         // GET api/<DeletesController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{adminID}/{vendorID}")]
+        public async Task<Approval> GetApprovalAsync(int adminID, int vendorID)
         {
-            return "value";
+            Database db = new();
+            Approval approval = await db.GetApprovalAsync(adminID, vendorID);
+            return approval;
         }
 
         // POST api/<DeletesController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task PostDeletionAsync([FromBody] Deletion deletion)
         {
+            Database db = new();
+            await db.InsertDeletionAsync(deletion);
         }
-
         // PUT api/<DeletesController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{adminID}/{vendorID}")]
+        public async Task UpdateDeletionAsync(int adminID, int vendorID, [FromBody] Deletion deletion)
         {
+            Database db = new();
+            await db.UpdateDeletionAsync(adminID, vendorID, deletion);
         }
 
         // DELETE api/<DeletesController>/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{adminID}/{vendorID}")]
         public void Delete(int id)
         {
         }

@@ -34,6 +34,7 @@ function createNavbar()
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" href="#">Tuscaloosa Trade Fair Association</a>
         <button type="button" class="btn btn-primary">Become a Vendor</button>
+      
         <button type="button" class="btn btn-primary">Log-In</button>
     </div>
     `
@@ -113,7 +114,61 @@ function vendorTable()
     appDiv.appendChild(container)
 }
 // vendor home page methods
+function vendorPage(){
+    vendorPageDescription();
+    eventTable();
+}
 
+function vendorPageDescription(){
+    const appDiv = document.getElementById("app")
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+    const container = document.createElement("div")
+    container.className = "container"
+    container.innerHTML = `
+    <h3>Upcoming Events</h3>
+    <br>
+    
+    `
+    appDiv.appendChild(container)
+
+
+}
+
+function eventTable(){
+    let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName))
+    console.log(sortedEvents)
+    const appDiv = document.getElementById("app")
+
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+
+    const container = document.createElement("div")
+    container.className = "container"
+    const table = document.createElement("table")
+    table.className = "table table-striped table-bordered table-primary table-hover"
+    table.style.tableLayout = "auto";
+    table.style.width = "auto";
+    table.style.whiteSpace = "nowrap";
+    const thead = document.createElement("thead")
+    thead.innerHTML = "<tr><th></th><th>Event Name</th><th></tr>"
+    table.appendChild(thead)
+
+    const tbody = document.createElement("tbody")
+    sortedEvents.forEach((event) => {
+        
+        const row = document.createElement("tr")
+        row.innerHTML = `<td><button onclick="handleOnRegister(${event.id})">${event.register ? 'UnRegister' : 'Register'}</button></td>`
+        tbody.appendChild(row)
+       
+
+        tbody.appendChild(row)
+    })
+
+    table.appendChild(tbody)
+    container.appendChild(table)
+    appDiv.appendChild(container)
+}
 
 // admin home page methods
 
@@ -200,4 +255,20 @@ async function getAllVendors()
     let response = await fetch(url)
     vendors = await response.json()
     console.log(vendors)
+}
+
+
+async function handleOnRegister(shopID) {
+
+
+    const response = await fetch(url + "/" + shopID,{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+   
+
+   await  handleOnLoad();
 }

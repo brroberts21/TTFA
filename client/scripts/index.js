@@ -9,6 +9,20 @@ users = []
 vendors = []
 baseUrl = "http://localhost:5246/api/"
 
+// this the java for a login from andrew
+//  async function register() {
+//     const username = document.getElementById('register-username').value;
+//     const password = document.getElementById('register-password').value;
+
+//     const response = await fetch(`${baseUrl}/register`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ username, password })
+//     });
+
+//     const result = await response.json();
+//     document.getElementById('output').innerText = JSON.stringify(result);
+// }
 async function handleOnLoad()
 {
     await getData()
@@ -33,9 +47,9 @@ function createNavbar()
     navbar.innerHTML = `
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" href="#">Tuscaloosa Trade Fair Association</a>
-        <button type="button" class="btn btn-primary">Become a Vendor</button>
-      
-        <button type="button" class="btn btn-primary">Log-In</button>
+        <button type="button" onclick="handleBecomeAVendor()" class="btn btn-primary">Become a Vendor</button>
+        <button type="button" onclick="handleLogin()" class="btn btn-primary">Log-In</button>
+
     </div>
     `
     appDiv.appendChild(navbar)
@@ -105,7 +119,7 @@ function vendorTable()
     const tbody = document.createElement("tbody")
     sortedVendors.forEach((vendor) => {
         const row = document.createElement("tr")
-        row.innerHTML = `<td><button class="btn btn-danger">More Info</button></td><td>${vendor.vendorName}</td><td>${vendor.type}</td>`
+        row.innerHTML = `<td><button onclick class="btn btn-danger">More Info</button></td><td>${vendor.vendorName}</td><td>${vendor.type}</td>`
         tbody.appendChild(row)
     })
 
@@ -272,3 +286,67 @@ async function handleOnRegister(shopID) {
 
    await  handleOnLoad();
 }
+
+ function handleLogin(){ 
+   
+        const appDiv = document.getElementById("app");
+        const space = document.createElement("br");
+        appDiv.appendChild(space);
+    
+        const container = document.createElement("div");
+        container.className = "container";
+        container.innerHTML = `
+        <form>
+  <div class="mb-3">
+    <label for="exampleInputEmail1" class="form-label">Email address</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+  </div>
+  <div class="mb-3">
+    <label for="exampleInputPassword1" class="form-label">Password</label>
+    <input type="password" class="form-control" id="exampleInputPassword1">
+  </div>
+  <div class="mb-3 form-check">
+
+
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+   
+`;
+
+        appDiv.appendChild(container);
+         
+    }
+
+    function handleBecomeAVendor(){
+        const appDiv = document.getElementById("app");
+        const space = document.createElement("br");
+        appDiv.appendChild(space);
+    
+        const container = document.createElement("div");
+        container.className = "container";
+        container.innerHTML = `
+        <form>
+  <div class="mb-3">
+    <label for="exampleInputEmail1" class="form-label">Email address</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+  </div>
+  <div class="mb-3">
+    <label for="exampleInputPassword1" class="form-label">Password</label>
+    <input type="password" class="form-control" id="exampleInputPassword1">
+  </div>
+  <div class="mb-3 form-check">
+
+
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+   
+`;
+
+        appDiv.appendChild(container);
+    }
+
+    

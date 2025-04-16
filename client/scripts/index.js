@@ -9,20 +9,7 @@ users = []
 vendors = []
 baseUrl = "http://localhost:5246/api/"
 
-// this the java for a login from andrew
-//  async function register() {
-//     const username = document.getElementById('register-username').value;
-//     const password = document.getElementById('register-password').value;
 
-//     const response = await fetch(`${baseUrl}/register`, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ username, password })
-//     });
-
-//     const result = await response.json();
-//     document.getElementById('output').innerText = JSON.stringify(result);
-// }
 async function handleOnLoad()
 {
     await getData()
@@ -48,8 +35,10 @@ function createNavbar()
     navbar.innerHTML = `
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#">Tuscaloosa Trade Fair Association</a>
-        <button type="button" class="btn" id="main-btn">Become a Vendor</button>
-        <button type="button" class="btn" id="main-btn">Log-In</button>
+        
+        <button type="button" class="btn btn-primary" id="main-btn" onclick="handleBecomeAVendor()">Become A Vendor</button>
+        <button type="button" class="btn btn-primary" id="main-btn" onclick="handleLogin()">Log-In</button>
+
     </div>
     `
     appDiv.appendChild(navbar)
@@ -344,10 +333,14 @@ function eventTable(){
     sortedEvents.forEach((event) => {
         
         const row = document.createElement("tr")
-        row.innerHTML = `<td><button onclick="handleOnRegister(${event.id})">${event.register ? 'UnRegister' : 'Register'}</button></td>`
-        tbody.appendChild(row)
-       
-
+        row.innerHTML = `
+            <td>
+                <button class="btn btn-primary" onclick="handleOnRegister(${event.id})">
+                    ${event.register ? 'Unregister' : 'Register'}
+                </button>
+            </td>
+            <td>${event.eventName}</td>
+        `
         tbody.appendChild(row)
     })
 
@@ -458,10 +451,10 @@ async function getVendor(vendorID)
     return await response.json()
 }
 
-async function handleOnRegister(shopID) {
+async function handleOnRegister(eventID) {
 
 
-    const response = await fetch(url + "/" + shopID,{
+    const response = await fetch(url + "/" + eventID,{
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -473,13 +466,94 @@ async function handleOnRegister(shopID) {
    await  handleOnLoad();
 }
 
- async function handleLogin(){ 
-    window.location.href = "LoginPage.html";
+function handleLogin(){ 
+    const appDiv = document.getElementById("app"); 
+
+    const loginModal = document.createElement("div");
+    loginModal.innerHTML = `
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
+            <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="login-form">
+              <div class="mb-3">
+                <label for="login-username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="login-username" required>
+              </div>
+              <div class="mb-3">
+                <label for="login-password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="login-password" required>
+              </div>
+              <div id="login-output" class="text-danger mb-2"></div>
+              <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    `;
+
+    appDiv.appendChild(loginModal);
+
+
+    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+    modal.show();
+    vendorPage();
+}
+
     
    
          
-    }
+    
 
     function handleBecomeAVendor() {
-        window.location.href = "BecomeAVendor.html"; 
-    }
+       
+            const appDiv = document.getElementById("app"); 
+        
+            const vendorModal = document.createElement("div");
+            vendorModal.innerHTML = `
+            <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
+                    <h1 class="modal-title fs-5" id="vendorModalLabel">Become a Vendor</h1>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="vendor-form">
+                      <div class="mb-3">
+                        <label for="vendor-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="vendor-username" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="vendor-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="vendor-password" required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="vendor-description" class="form-label">Describe Your Company</label>
+                        <textarea class="form-control" id="vendor-description" rows="4" placeholder="What items would you like to sell and any information you would like visible to our customers..."></textarea>
+                      </div>
+                      <div id="vendor-output" class="text-danger mb-2"></div>
+                      <button type="submit" class="btn btn-primary">Become a Vendor</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            `;
+        
+            appDiv.appendChild(vendorModal);
+        
+            const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
+            modal.show();
+            vendorPage()
+        
+        
+        }
+       
+        
+                

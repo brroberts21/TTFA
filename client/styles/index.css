@@ -8,5 +8,53 @@
     height: 500px;
     width: auto;
     object-fit: contain;
+    border-style: groove;
+    border-color: rgb(5, 20, 100);
 }
 
+.ttfaMap {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+p, li, h5 {
+    color: rgb(5, 20, 100);
+
+}
+
+#vendor-table-main thead th {
+    background-color: rgb(5, 20, 100);
+    color: white;
+    text-align: center;
+}
+
+#vendor-table-main tbody tr, td {
+    color: rgb(5, 20, 100);
+    text-align: center;
+}
+
+
+
+#vendor-table-modal thead th{
+    background-color: rgb(5, 20, 100);
+    color: rgb(247,244,242);
+}
+
+#searchbar {
+    background-position: 10px 12px;
+    background-repeat: no-repeat;
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 20px 12px 40px;
+    border: solid rgb(5, 20, 100);
+    border-radius: 25px;
+    margin-bottom: 12px;
+}
+
+#main-btn {
+    color: white;
+    background-color: rgb(75,156,211);
+}

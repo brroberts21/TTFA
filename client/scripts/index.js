@@ -627,7 +627,7 @@ function handleLogin(){
     buttons.forEach(button => {
         button.addEventListener('click', () => {
             if (button.textContent === 'Approved') {
-                button.textContent = 'Denied';
+                button.textContent = 'Deniedd';
                 button.classList.remove('btn-success');
                 button.classList.add('btn-danger');
             } else {

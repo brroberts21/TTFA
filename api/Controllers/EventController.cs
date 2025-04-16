@@ -26,6 +26,14 @@ namespace MyApp.Namespace
             return singleEvent;
         }
 
+        // GET api/<UsesController>/vendor/5
+        [HttpGet("vendor/{vendorID}")]
+        public async Task<List<Event>> GetVendorEvents(int vendorID)
+        {
+            Database db = new();
+            return await db.GetVendorEvents(vendorID);
+        }
+
         // POST api/<EventController>
         [HttpPost]
         public async Task PostEventAsync([FromBody] Event newEvent)

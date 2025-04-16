@@ -17,7 +17,7 @@ namespace MyApp.Namespace
             return await db.GetAllUsesAsync();
         }
 
-        // GET api/<UsesController>/5
+        // GET api/<UsesController>/5/5/5
         [HttpGet("{eventID}/{vendorID}/{boothID}")]
         public async Task<Uses> GetUsesAsync(int eventID, int vendorID, int boothID)
         {

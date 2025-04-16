@@ -209,6 +209,43 @@ namespace api
             }
         }
 
+        public async Task<List<Event>> GetVendorEvents(int vendorID)
+        {
+            List<Event> events = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+                select u.event_id, u.vendor_id, u.booth_id,
+                    event_name, event_date, event_start_time, event_end_time, booth_num
+                from uses u join events e on u.event_id = e.event_id
+                    join vendors v on v.vendor_id = u.vendor_id
+                    join booth b on b.booth_id = u.booth_id
+                where u.vendor_id = @vendor_id and u.vendor_id in (
+                    select u.vendor_id
+                    from uses u
+                    where u.deleted = 'n'
+                    order by u.event_id, u.booth_id)
+                order by u.event_id;", connection);
+
+            command.Parameters.AddWithValue("@vendor_id", vendorID);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                events.Add(new Event(){
+                    ID = reader.GetInt32(0),
+                    Name = reader.GetString(3),
+                    Description = "",
+                    Date = reader.GetDateTime(4),
+                    StartTime = new DateTime(1, 1, 1, reader.GetTimeSpan(5).Hours, reader.GetTimeSpan(5).Minutes, reader.GetTimeSpan(5).Seconds),
+                    EndTime = new DateTime(1, 1, 1, reader.GetTimeSpan(6).Hours, reader.GetTimeSpan(6).Minutes, reader.GetTimeSpan(6).Seconds),
+                    Deleted = "n"
+                });
+            }
+            return events;
+        }
 
         /*
         When testing the insert event, make sure your data is formatted like this or it will not work

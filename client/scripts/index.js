@@ -9,6 +9,20 @@ users = []
 vendors = []
 baseUrl = "http://localhost:5246/api/"
 
+// this the java for a login from andrew
+//  async function register() {
+//     const username = document.getElementById('register-username').value;
+//     const password = document.getElementById('register-password').value;
+
+//     const response = await fetch(`${baseUrl}/register`, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ username, password })
+//     });
+
+//     const result = await response.json();
+//     document.getElementById('output').innerText = JSON.stringify(result);
+// }
 async function handleOnLoad()
 {
     await getData()
@@ -173,7 +187,7 @@ function vendorTable()
     const tbody = document.createElement("tbody")
     sortedVendors.forEach((vendor) => {
         const row = document.createElement("tr")
-
+        
         const button = document.createElement("button")
         button.id = "main-btn"
         button.className = "btn"
@@ -286,7 +300,61 @@ async function vendorEventsTable(vendorID)
 }
 
 // vendor home page methods
+function vendorPage(){
+    vendorPageDescription();
+    eventTable();
+}
 
+function vendorPageDescription(){
+    const appDiv = document.getElementById("app")
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+    const container = document.createElement("div")
+    container.className = "container"
+    container.innerHTML = `
+    <h3>Upcoming Events</h3>
+    <br>
+    
+    `
+    appDiv.appendChild(container)
+
+
+}
+
+function eventTable(){
+    let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName))
+    console.log(sortedEvents)
+    const appDiv = document.getElementById("app")
+
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+
+    const container = document.createElement("div")
+    container.className = "container"
+    const table = document.createElement("table")
+    table.className = "table table-striped table-bordered table-primary table-hover"
+    table.style.tableLayout = "auto";
+    table.style.width = "auto";
+    table.style.whiteSpace = "nowrap";
+    const thead = document.createElement("thead")
+    thead.innerHTML = "<tr><th></th><th>Event Name</th><th></tr>"
+    table.appendChild(thead)
+
+    const tbody = document.createElement("tbody")
+    sortedEvents.forEach((event) => {
+        
+        const row = document.createElement("tr")
+        row.innerHTML = `<td><button onclick="handleOnRegister(${event.id})">${event.register ? 'UnRegister' : 'Register'}</button></td>`
+        tbody.appendChild(row)
+       
+
+        tbody.appendChild(row)
+    })
+
+    table.appendChild(tbody)
+    container.appendChild(table)
+    appDiv.appendChild(container)
+}
 
 // admin home page methods
 
@@ -389,3 +457,29 @@ async function getVendor(vendorID)
     let response = await fetch(url)
     return await response.json()
 }
+
+async function handleOnRegister(shopID) {
+
+
+    const response = await fetch(url + "/" + shopID,{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+   
+
+   await  handleOnLoad();
+}
+
+ async function handleLogin(){ 
+    window.location.href = "LoginPage.html";
+    
+   
+         
+    }
+
+    function handleBecomeAVendor() {
+        window.location.href = "BecomeAVendor.html"; 
+    }

@@ -310,7 +310,7 @@ function vendorPageDescription(){
 
 }
 
-function eventTable(){
+function eventTable(event){
     let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName))
     console.log(sortedEvents)
     const appDiv = document.getElementById("app")
@@ -502,7 +502,24 @@ function handleLogin(){
 
     const modal = new bootstrap.Modal(document.getElementById('loginModal'));
     modal.show();
-    vendorPage();
+    const loginForm = document.getElementById("login-form");
+    loginForm.addEventListener("submit", function (event) {
+       
+
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+
+        if (username === "admin" && password === "password") {
+            modal.hide(); 
+            handleOnAdmin(); 
+        } else {
+            document.getElementById("login-output").textContent = "Invalid username or password.";
+        }
+    });
+
+   
+
+    
 }
 
     
@@ -550,10 +567,75 @@ function handleLogin(){
         
             const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
             modal.show();
-            vendorPage()
+            
         
         
         }
        
         
-                
+        
+        async function handleOnAdmin() {
+            document.body.innerHTML = `
+                <h1>Admin Page</h1>
+                <p>Upcoming Events</p>
+                <table class="table">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">Business</th>
+      <th scope="col">Phone Number</th>
+      <th scope="col">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">1</th>
+      <td>John Smith</td>
+      <td>Crimson Harvest </td>
+      <td>(205)-555-101</td>
+      <td>
+      <button class="btn btn-danger toggle-btn">Denied</button>
+  </td>
+      
+    </tr>
+    <tr>
+      <th scope="row">2</th>
+      <td>Sarah Williams</td>
+      <td>Druid City Delight</td>
+      <td>(205)555-0104</td>
+      <td>
+       <button class="btn btn-success toggle-btn">Approved</button>
+                    </td>
+    </tr>
+    <tr>
+      <th scope="row">3</th>
+      <td>Green Thimb Gardens</td>
+      <td>Plants</td>
+      <td>(205)-555-0107</td>
+      <td>
+      <button class="btn btn-danger toggle-btn">Denied</button>
+  </td>
+    </tr>
+  </tbody>
+</table>
+
+
+</table>
+            `;
+            const buttons = document.querySelectorAll('.toggle-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (button.textContent === 'Approved') {
+                button.textContent = 'Denied';
+                button.classList.remove('btn-success');
+                button.classList.add('btn-danger');
+            } else {
+                button.textContent = 'Approved';
+                button.classList.remove('btn-danger');
+                button.classList.add('btn-success');
+            }
+        });
+    });
+        }
+           

@@ -290,6 +290,9 @@ async function vendorEventsTable(vendorID)
 
 // vendor home page methods
 function vendorPage(){
+    const app = document.getElementById("app");
+    app.innerHTML = ""; 
+
     vendorPageDescription();
     eventTable();
 }
@@ -310,8 +313,8 @@ function vendorPageDescription(){
 
 }
 
-function eventTable(event){
-    let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName))
+function eventTable(events){
+   
     console.log(sortedEvents)
     const appDiv = document.getElementById("app")
 
@@ -350,6 +353,61 @@ function eventTable(event){
 }
 
 // admin home page methods
+ 
+async function handleOnAdmin(vendors) {
+    const app = document.getElementById("app"); 
+    app.innerHTML = "";  
+
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML =  `
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>`;  
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName));
+
+    sortedVendors.forEach((vendor) => {
+        const row = document.createElement("tr");
+        row.innerHTML =  `
+            <td>${vendor.ownerFirstName} ${vendor.ownerLastName}</td>
+            <td>${vendor.phone}</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+           
+        `;
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    app.appendChild(table);  
+}
+   
+   
+async function handleOnApprove(vendorID) {
+
+
+    const response = await fetch(url + "/" + vendorID,{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+   
+
+   await  handleOnLoad();
+}
 
 
 // data methods
@@ -466,176 +524,109 @@ async function handleOnRegister(eventID) {
    await  handleOnLoad();
 }
 
-function handleLogin(){ 
-    const appDiv = document.getElementById("app"); 
-
-    const loginModal = document.createElement("div");
-    loginModal.innerHTML = `
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
-            <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="login-form">
-              <div class="mb-3">
-                <label for="login-username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="login-username" required>
+function handleLogin(vendor){ 
+    
+        const appDiv = document.getElementById("app"); 
+    
+        const loginModal = document.createElement("div");
+        loginModal.innerHTML = `
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
+                <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="mb-3">
-                <label for="login-password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="login-password" required>
-              </div>
-              <div id="login-output" class="text-danger mb-2"></div>
-              <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-    `;
-
-    appDiv.appendChild(loginModal);
-
-
-    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-    modal.show();
-    const loginForm = document.getElementById("login-form");
-    loginForm.addEventListener("submit", function (event) {
-       
-
-        const username = document.getElementById("login-username").value;
-        const password = document.getElementById("login-password").value;
-
-        if (username === "admin" && password === "password") {
-            modal.hide(); 
-            handleOnAdmin(); 
-        } else {
-            document.getElementById("login-output").textContent = "Invalid username or password.";
-        }
-    });
-
-   
-
-    
-}
-
-    
-   
-         
-    
-
-    function handleBecomeAVendor() {
-       
-            const appDiv = document.getElementById("app"); 
-        
-            const vendorModal = document.createElement("div");
-            vendorModal.innerHTML = `
-            <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalLabel" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
-                    <h1 class="modal-title fs-5" id="vendorModalLabel">Become a Vendor</h1>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              <div class="modal-body">
+                <form id="login-form">
+                  <div class="mb-3">
+                    <label for="login-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="login-username" required>
                   </div>
-                  <div class="modal-body">
-                    <form id="vendor-form">
-                      <div class="mb-3">
-                        <label for="vendor-username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="vendor-username" required>
-                      </div>
-                      <div class="mb-3">
-                        <label for="vendor-password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="vendor-password" required>
-                      </div>
-                      <div class="mb-3">
-                        <label for="vendor-description" class="form-label">Describe Your Company</label>
-                        <textarea class="form-control" id="vendor-description" rows="4" placeholder="What items would you like to sell and any information you would like visible to our customers..."></textarea>
-                      </div>
-                      <div id="vendor-output" class="text-danger mb-2"></div>
-                      <button type="submit" class="btn btn-primary">Become a Vendor</button>
-                    </form>
+                  <div class="mb-3">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="login-password" required>
                   </div>
-                </div>
+                  <div id="login-output" class="text-danger mb-2"></div>
+                  <button type="submit" class="btn btn-primary">Login</button>
+                </form>
               </div>
             </div>
-            `;
-        
-            appDiv.appendChild(vendorModal);
-        
-            const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
-            modal.show();
+          </div>
+        </div>
+        `;
+    
+        appDiv.appendChild(loginModal);
+    
+        const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+        modal.show();
+    
+        const loginForm = document.getElementById("login-form");
+        loginForm.addEventListener("submit", function (event) {
             
+    
+            const username = document.getElementById("login-username").value.trim();
+            const password = document.getElementById("login-password").value.trim();
+    
+            
+            if (username === "admin" && password === "password") {
+                modal.hide(); 
+                handleOnAdmin(vendors); 
+                return;
+            }
+    
         
-        
-        }
-       
-        
-        
-        async function handleOnAdmin() {
-            document.body.innerHTML = `
-                <h1>Admin Page</h1>
-                <p>Upcoming Events</p>
-                <table class="table">
-  <thead class="thead-dark">
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Name</th>
-      <th scope="col">Business</th>
-      <th scope="col">Phone Number</th>
-      <th scope="col">Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th scope="row">1</th>
-      <td>John Smith</td>
-      <td>Crimson Harvest </td>
-      <td>(205)-555-101</td>
-      <td>
-      <button class="btn btn-danger toggle-btn">Denied</button>
-  </td>
-      
-    </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Sarah Williams</td>
-      <td>Druid City Delight</td>
-      <td>(205)555-0104</td>
-      <td>
-       <button class="btn btn-success toggle-btn">Approved</button>
-                    </td>
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td>Green Thimb Gardens</td>
-      <td>Plants</td>
-      <td>(205)-555-0107</td>
-      <td>
-      <button class="btn btn-danger toggle-btn">Denied</button>
-  </td>
-    </tr>
-  </tbody>
-</table>
-
-
-</table>
-            `;
-            const buttons = document.querySelectorAll('.toggle-btn');
-    buttons.forEach(button => {
-        button.addEventListener('click', () => {
-            if (button.textContent === 'Approved') {
-                button.textContent = 'Deniedd';
-                button.classList.remove('btn-success');
-                button.classList.add('btn-danger');
+            const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
+    
+            if (matchingVendor && password === "mis321") {
+                modal.hide(); 
+                vendorPage(); 
             } else {
-                button.textContent = 'Approved';
-                button.classList.remove('btn-danger');
-                button.classList.add('btn-success');
+                document.getElementById("login-output").textContent = "Invalid username or password.";
             }
         });
-    });
-        }
-           
+    }
+    function handleBecomeAVendor() {
+        const appDiv = document.getElementById("app");
+    
+        const vendorModal = document.createElement("div");
+        vendorModal.innerHTML = `
+        <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
+                <h1 class="modal-title fs-5" id="vendorModalLabel">Become a Vendor</h1>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p class="mb-3">
+                  Describe your company, including the items you sell and any information you'd like to be visible to our customers.
+                </p>
+                <div class="mb-3">
+                  <label for="vendor-description" class="form-label">Company Description</label>
+                  <textarea class="form-control" id="vendor-description" rows="4" placeholder="Tell us about your business..."></textarea>
+                </div>
+                <form id="login-form">
+                  <div class="mb-3">
+                    <label for="login-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="login-username" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="login-password" required>
+                  </div>
+                  <div id="login-output" class="text-danger mb-2"></div>
+                  <button type="submit" class="btn btn-primary">Apply</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+    
+        appDiv.appendChild(vendorModal);
+    
+        const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
+        modal.show();
+    }
+    

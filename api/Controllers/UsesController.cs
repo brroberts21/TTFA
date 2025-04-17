@@ -33,6 +33,13 @@ namespace MyApp.Namespace
             return await db.GetVendorCount(eventID);
         }
 
+        [HttpGet("{eventId}/{vendorID}")]
+        public async Task<int> GetBoothNumber(int eventId, int vendorID)
+        {
+            Database db = new();
+            return await db.GetBoothNumber(eventId, vendorID);
+        }
+
         // POST api/<UsesController>
         [HttpPost]
         public async Task PostUseAsync([FromBody] Uses use)

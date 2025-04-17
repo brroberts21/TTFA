@@ -7,6 +7,8 @@ namespace api
     public class Database
     {
         private string cs = "Server=ijj1btjwrd3b7932.cbetxkdyhwsb.us-east-1.rds.amazonaws.com;User ID=sb665amfr0pynuyz;Password=wqayxcinhauzfivu;Database=o8gync8ricmopt1y";
+        // private string cs = Environment.GetEnvironmentVariable("DATABASE_URL");
+
 
         public async Task<List<Vendor>> GetAllVendorsAsync()
         {
@@ -23,13 +25,16 @@ namespace api
                 vendors.Add(new Vendor(){
                     ID = reader.GetInt32(0),
                     VendorName = reader.GetString(1),
-                    OwnerFirstName = reader.GetString(2),
-                    OwnerLastName = reader.GetString(3),
-                    OwnerEmail = reader.GetString(4),
-                    OwnerPassword = reader.GetString(5),
-                    OwnerPhone = reader.GetString(6),
-                    Type = reader.GetString(7),
-                    Deleted = reader.GetString(8)
+                    VendorEmail = reader.GetString(2),
+                    VendorPhone = reader.GetString(3),
+                    VendorSocial = reader.IsDBNull(reader.GetOrdinal("vendor_social")) ? null : reader.GetString("vendor_social"),
+                    OwnerFirstName = reader.GetString(5),
+                    OwnerLastName = reader.GetString(6),
+                    OwnerEmail = reader.GetString(7),
+                    OwnerPassword = reader.GetString(8),
+                    OwnerPhone = reader.GetString(9),
+                    Type = reader.GetString(10),
+                    Deleted = reader.GetString(11)
                 });
             }
 
@@ -50,13 +55,16 @@ namespace api
                 Vendor vendor = new(){
                     ID = reader.GetInt32(0),
                     VendorName = reader.GetString(1),
-                    OwnerFirstName = reader.GetString(2),
-                    OwnerLastName = reader.GetString(3),
-                    OwnerEmail = reader.GetString(4),
-                    OwnerPassword = reader.GetString(5),
-                    OwnerPhone = reader.GetString(6),
-                    Type = reader.GetString(7),
-                    Deleted = reader.GetString(8)
+                    VendorEmail = reader.GetString(2),
+                    VendorPhone = reader.GetString(3),
+                    VendorSocial = reader.IsDBNull(reader.GetOrdinal("vendor_social")) ? null : reader.GetString("vendor_social"),
+                    OwnerFirstName = reader.GetString(5),
+                    OwnerLastName = reader.GetString(6),
+                    OwnerEmail = reader.GetString(7),
+                    OwnerPassword = reader.GetString(8),
+                    OwnerPhone = reader.GetString(9),
+                    Type = reader.GetString(10),
+                    Deleted = reader.GetString(11)
                 };
                 return vendor;
                 
@@ -76,10 +84,17 @@ namespace api
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
 
-                string sql = $"insert into o8gync8ricmopt1y.vendors (vendor_name, owner_first_name, owner_last_name, owner_email, owner_password, owner_phone, vendor_type, deleted) values (@vendor_name, @owner_first_name, @owner_last_name, @owner_email, @owner_password, @owner_phone, @vendor_type, @deleted);";
+                string sql = $@"
+                insert into o8gync8ricmopt1y.vendors 
+                (vendor_name, vendor_email, vendor_phone, vendor_social, owner_first_name, owner_last_name, owner_email, owner_password, owner_phone, vendor_type, deleted) 
+                values 
+                (@vendor_name, @vendor_email, @vendor_phone, @vendor_social, @owner_first_name, @owner_last_name, @owner_email, @owner_password, @owner_phone, @vendor_type, @deleted);";
 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@vendor_name", vendor.VendorName);
+                command.Parameters.AddWithValue("@vendor_email", vendor.VendorEmail);
+                command.Parameters.AddWithValue("@vendor_phone", vendor.VendorPhone);
+                command.Parameters.AddWithValue("@vendor_social", vendor.VendorSocial);
                 command.Parameters.AddWithValue("@owner_first_name", vendor.OwnerFirstName);
                 command.Parameters.AddWithValue("@owner_last_name", vendor.OwnerLastName);
                 command.Parameters.AddWithValue("@owner_email", vendor.OwnerEmail);
@@ -130,11 +145,19 @@ namespace api
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
 
-                string sql = "update o8gync8ricmopt1y.vendors set vendor_name = @vendor_name, owner_first_name = @owner_first_name, owner_last_name = @owner_last_name, owner_email = @owner_email, owner_password = @owner_password, owner_phone = @owner_phone, vendor_type = @vendor_type, deleted = @deleted where vendor_id = @id";
+                string sql = @"
+                update o8gync8ricmopt1y.vendors set 
+                vendor_name = @vendor_name, vendor_email = @vendor_email, vendor_phone = @vendor_phone, vendor_social = @vendor_social,
+                owner_first_name = @owner_first_name, owner_last_name = @owner_last_name, 
+                owner_email = @owner_email, owner_password = @owner_password, owner_phone = @owner_phone, 
+                vendor_type = @vendor_type, deleted = @deleted where vendor_id = @id";
                 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@id", vendor.ID);
                 command.Parameters.AddWithValue("@vendor_name", vendor.VendorName);
+                command.Parameters.AddWithValue("@vendor_email", vendor.VendorEmail);
+                command.Parameters.AddWithValue("@vendor_phone", vendor.VendorPhone);
+                command.Parameters.AddWithValue("@vendor_social", vendor.VendorSocial);
                 command.Parameters.AddWithValue("@owner_first_name", vendor.OwnerFirstName);
                 command.Parameters.AddWithValue("@owner_last_name", vendor.OwnerLastName);
                 command.Parameters.AddWithValue("@owner_email", vendor.OwnerEmail);
@@ -677,6 +700,34 @@ namespace api
             }
 
             return count;
+        }
+
+        public async Task<int> GetBoothNumber(int eventID, int vendorID)
+        {
+            int booth;
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select booth_id
+            from uses
+            where event_id = @event_id and vendor_id = @vendor_id;", connection);
+
+            command.Parameters.AddWithValue("@event_id", eventID);
+            command.Parameters.AddWithValue("@vendor_id", vendorID);
+            command.Prepare();
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                booth = reader.GetInt32(0);
+            }
+            else{
+                booth = 0;
+            }
+
+            return booth;
         }
 
         public async Task InsertUseAsync(Uses use)

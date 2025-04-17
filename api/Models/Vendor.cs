@@ -9,6 +9,12 @@ namespace api.Models
     {
         public int ID { get; set; }
 
+        public string VendorEmail { get; set; }
+
+        public string VendorPhone { get; set; }
+
+        public string? VendorSocial { get; set; }
+
         public string VendorName { get; set; }
 
         public string OwnerFirstName { get; set; }

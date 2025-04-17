@@ -159,7 +159,7 @@ async function createEventTableModal()
     </div>
     `
     appDiv.appendChild(eventTableModal)
-    EventTable()
+    await EventTable()
     handleEventMonthDropdown()
     handleEventYearDropdown()
     handleEventFilter()
@@ -443,9 +443,9 @@ function vendorInfo(vendor)
     <h5>About ${vendor.vendorName}</h5>
     <ul>
         <li>Owner Name: ${vendor.ownerFirstName} ${vendor.ownerLastName}</li>
-        <li>Email: ${vendor.email || "N/A"}</li>
-        <li>Phone Number: ${vendor.phone || "N/A"}</li>
-        <li>Social Media: ${vendor.social || "N/A"}</li>
+        <li>Email: ${vendor.vendorEmail || "N/A"}</li>
+        <li>Phone Number: ${vendor.vendorPhone || "N/A"}</li>
+        <li>Social Media: ${vendor.vendorSocial ? `@${vendor.vendorSocial}` : "N/A"}</li>
     </ul>
     <h5>${vendor.vendorName}'s Events:</h5>
     <div id="vendorModalTable" class=container>
@@ -475,11 +475,12 @@ async function vendorEventsTable(vendorID)
         table.appendChild(thead)
 
         const tbody = document.createElement("tbody")
-        sortedEvents.forEach((event) => {
-            const row = document.createElement("tr")
-            row.innerHTML = `<td>${event.name}</td><td>${new Date(event.date).toLocaleDateString()}</td><td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td>placeholder}</td>`
-            tbody.appendChild(row)
-        })
+        for (const event of sortedEvents) {
+            const boothNum = await getBoothNumber(event.id, vendorID);
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${event.name}</td><td>${new Date(event.date).toLocaleDateString()}</td><td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td>${boothNum}</td>`;
+            tbody.appendChild(row);
+        }
 
         table.appendChild(tbody)
         tableDiv.appendChild(table)
@@ -722,9 +723,17 @@ async function getVendorCount(eventID)
     url = baseUrl + `Uses/${eventID}`
     let response = await fetch(url)
     count = await response.json()
-    console.log(count)
     return count
 }
+
+async function getBoothNumber(eventID, vendorID)
+{
+    url = baseUrl + `Uses/${eventID}/${vendorID}`
+    let response = await fetch(url)
+    booth = await response.json()
+    return booth
+}
+
 
 // vendor data methods
 async function getAllVendors()

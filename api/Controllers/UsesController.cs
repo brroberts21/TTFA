@@ -26,6 +26,13 @@ namespace MyApp.Namespace
             return use;
         }
 
+        [HttpGet("{eventID}")]
+        public async Task<int> GetVendorCount(int eventID)
+        {
+            Database db = new();
+            return await db.GetVendorCount(eventID);
+        }
+
         // POST api/<UsesController>
         [HttpPost]
         public async Task PostUseAsync([FromBody] Uses use)

@@ -36,11 +36,15 @@ p, li, h5 {
     text-align: center;
 }
 
-
-
 #vendor-table-modal thead th{
     background-color: rgb(5, 20, 100);
     color: rgb(247,244,242);
+}
+
+#event-table-modal thead th{
+    background-color: rgb(5, 20, 100);
+    color: rgb(247,244,242);
+    text-align: center;
 }
 
 #searchbar {
@@ -57,4 +61,17 @@ p, li, h5 {
 #main-btn {
     color: white;
     background-color: rgb(75,156,211);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(22%) sepia(97%) saturate(748%) hue-rotate(178deg) brightness(91%) contrast(101%);
+}
+
+.dropdown {
+    color: rgb(5, 20, 100);
+    background-color: white;
+    border: 1px solid rgb(5, 20, 100);
+    padding: 5px;
+    border-radius: 5px;
 }

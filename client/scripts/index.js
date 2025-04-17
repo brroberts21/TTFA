@@ -491,69 +491,98 @@ async function vendorEventsTable(vendorID)
 }
 
 // vendor home page methods
-// function vendorPage(){
-//     vendorPageDescription();
-//     eventTable();
-// }
+function vendorPage(){
+    const app = document.getElementById("app");
+    app.innerHTML = ""; 
 
-// function vendorPageDescription(){
-//     const appDiv = document.getElementById("app")
-//     const space = document.createElement("br")
-//     appDiv.appendChild(space)
-//     const container = document.createElement("div")
-//     container.className = "container"
-//     container.innerHTML = `
-//     <h3>Upcoming Events</h3>
-//     <br>
-    
-//     `
-//     appDiv.appendChild(container)
+    vendorPageDescription();
+    eventTable();
+}
+
+function vendorPageDescription(){
+    const app = document.getElementById("app"); 
+    app.innerHTML = "";  
+
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML =  `
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>`;  
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName));
+
+    sortedEvents.forEach((event) => {
+        const row = document.createElement("tr");
+        row.innerHTML =  `
+            <td>${event.eventName}</td>
+            <td>${event.eventDescription }</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+           
+        `;
+        tbody.appendChild(row);
+    });
 
 
-// }
+    table.appendChild(tbody);
+    app.appendChild(table); 
 
 
-// function eventTable(){
-//     let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName))
-//     console.log(sortedEvents)
-//     const appDiv = document.getElementById("app")
 
-//     const space = document.createElement("br")
-//     appDiv.appendChild(space)
+}
+   
 
-//     const container = document.createElement("div")
-//     container.className = "container"
-//     const table = document.createElement("table")
-//     table.className = "table table-striped table-bordered table-primary table-hover"
-//     table.style.tableLayout = "auto";
-//     table.style.width = "auto";
-//     table.style.whiteSpace = "nowrap";
-//     const thead = document.createElement("thead")
-//     thead.innerHTML = "<tr><th></th><th>Event Name</th><th></tr>"
-//     table.appendChild(thead)
+function eventTable(events){
+   
+    console.log(sortedEvents)
+    const appDiv = document.getElementById("app")
 
-//     const tbody = document.createElement("tbody")
-//     sortedEvents.forEach((event) => {
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+
+    const container = document.createElement("div")
+    container.className = "container"
+    const table = document.createElement("table")
+    table.className = "table table-striped table-bordered table-primary table-hover"
+    table.style.tableLayout = "auto";
+    table.style.width = "auto";
+    table.style.whiteSpace = "nowrap";
+    const thead = document.createElement("thead")
+    thead.innerHTML = "<tr><th></th><th>Event Name</th><th></tr>"
+    table.appendChild(thead)
+
+    const tbody = document.createElement("tbody")
+    sortedEvents.forEach((event) => {
         
-//         const row = document.createElement("tr")
-//         row.innerHTML = `
-//             <td>
-//                 <button class="btn btn-primary" onclick="handleOnRegister(${event.id})">
-//                     ${event.register ? 'Unregister' : 'Register'}
-//                 </button>
-//             </td>
-//             <td>${event.eventName}</td>
-//         `
-//         tbody.appendChild(row)
-//     })
+        const row = document.createElement("tr")
+        row.innerHTML = `
+            <td>
+                <button class="btn btn-primary" onclick="handleOnRegister(${event.id})">
+                    ${event.register ? 'Unregister' : 'Register'}
+                </button>
+            </td>
+            <td>${event.eventName}</td>
+        `
+        tbody.appendChild(row)
+    })
 
-//     table.appendChild(tbody)
-//     container.appendChild(table)
-//     appDiv.appendChild(container)
-// }
+    table.appendChild(tbody)
+    container.appendChild(table)
+    appDiv.appendChild(container)
+}
 
 // admin home page methods
- 
 async function handleOnAdmin(vendors) {
     const app = document.getElementById("app"); 
     app.innerHTML = "";  
@@ -590,21 +619,16 @@ async function handleOnAdmin(vendors) {
     });
 
     table.appendChild(tbody);
-    app.appendChild(table);  
-}
-   
+    app.appendChild(table); 
+} 
    
 async function handleOnApprove(vendorID) {
-
-
     const response = await fetch(url + "/" + vendorID,{
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
     });
-
-   
 
    await  handleOnLoad();
 }
@@ -728,8 +752,6 @@ async function handleOnRegister(eventID) {
         },
     });
 
-   
-
    await  handleOnLoad();
 }
 
@@ -763,48 +785,38 @@ function handleLogin(vendor){
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    `;
-
-    appDiv.appendChild(loginModal);
-
-
-    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-    modal.show();
-    vendorPage();
-}           
+        `;
     
-        // appDiv.appendChild(loginModal);
+        appDiv.appendChild(loginModal);
     
-        // const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-        // modal.show();
+        const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+        modal.show();
     
-        // const loginForm = document.getElementById("login-form");
-        // loginForm.addEventListener("submit", function (event) {
+        const loginForm = document.getElementById("login-form");
+        loginForm.addEventListener("submit", function (event) {
             
     
-        //     const username = document.getElementById("login-username").value.trim();
-        //     const password = document.getElementById("login-password").value.trim();
+            const username = document.getElementById("login-username").value.trim();
+            const password = document.getElementById("login-password").value.trim();
     
             
-        //     if (username === "admin" && password === "password") {
-        //         modal.hide(); 
-        //         handleOnAdmin(vendors); 
-        //         return;
-        //     }
+            if (username === "admin" && password === "password") {
+                modal.hide(); 
+                handleOnAdmin(vendors); 
+                return;
+            }
     
         
-        //     const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
+            const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
     
-        //     if (matchingVendor && password === "mis321") {
-        //         modal.hide(); 
-        //         vendorPage(); 
-        //     } else {
-        //         document.getElementById("login-output").textContent = "Invalid username or password.";
-        //     }
-        // });
-
+            if (matchingVendor && password === "mis321") {
+                modal.hide(); 
+                vendorPage(); 
+            } else {
+                document.getElementById("login-output").textContent = "Invalid username or password.";
+            }
+        });
+    }
     function handleBecomeAVendor() {
         const appDiv = document.getElementById("app");
     

@@ -34,3 +34,5 @@ C:\Users\Ben Roberts\Documents\Code\MIS 321\TTFA\api\obj\Debug\net8.0\refint\api
 C:\Users\Ben Roberts\Documents\Code\MIS 321\TTFA\api\obj\Debug\net8.0\api.pdb
 C:\Users\Ben Roberts\Documents\Code\MIS 321\TTFA\api\obj\Debug\net8.0\api.genruntimeconfig.cache
 C:\Users\Ben Roberts\Documents\Code\MIS 321\TTFA\api\obj\Debug\net8.0\ref\api.dll
+C:\Users\Ben Roberts\Documents\Code\MIS 321\TTFA\api\bin\Debug\net8.0\DotNetEnv.dll
+C:\Users\Ben Roberts\Documents\Code\MIS 321\TTFA\api\bin\Debug\net8.0\Sprache.dll

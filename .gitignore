@@ -1,6 +1,6 @@
 # Ignore build outputs
-bin/
-obj/
+api/bin/
+api/obj/
 artifacts/
 
 # Ignore user-specific files

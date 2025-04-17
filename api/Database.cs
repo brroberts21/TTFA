@@ -2,19 +2,19 @@ using System.Globalization;
 using api.Models;
 using MySqlConnector;
 
+using DotNetEnv;
 namespace api
 {
     public class Database
     {
-        private string cs = "Server=ijj1btjwrd3b7932.cbetxkdyhwsb.us-east-1.rds.amazonaws.com;User ID=sb665amfr0pynuyz;Password=wqayxcinhauzfivu;Database=o8gync8ricmopt1y";
-        // private string cs = Environment.GetEnvironmentVariable("DATABASE_URL");
-
-
+        private string cs = Environment.GetEnvironmentVariable("DATABASE_URL");
         public async Task<List<Vendor>> GetAllVendorsAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs2 = Environment.GetEnvironmentVariable("DATABASE_URL");
             List<Vendor> vendors = [];
 
-            using var connection = new MySqlConnection(cs);
+            using var connection = new MySqlConnection(cs2);
             await connection.OpenAsync();
 
             using var command = new MySqlCommand("SELECT * FROM o8gync8ricmopt1y.vendors where deleted = 'n';", connection);

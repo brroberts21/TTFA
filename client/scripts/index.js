@@ -774,38 +774,37 @@ function handleLogin(vendor){
     modal.show();
     vendorPage();
 }           
-        `;
     
-        appDiv.appendChild(loginModal);
+        // appDiv.appendChild(loginModal);
     
-        const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-        modal.show();
+        // const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+        // modal.show();
     
-        const loginForm = document.getElementById("login-form");
-        loginForm.addEventListener("submit", function (event) {
+        // const loginForm = document.getElementById("login-form");
+        // loginForm.addEventListener("submit", function (event) {
             
     
-            const username = document.getElementById("login-username").value.trim();
-            const password = document.getElementById("login-password").value.trim();
+        //     const username = document.getElementById("login-username").value.trim();
+        //     const password = document.getElementById("login-password").value.trim();
     
             
-            if (username === "admin" && password === "password") {
-                modal.hide(); 
-                handleOnAdmin(vendors); 
-                return;
-            }
+        //     if (username === "admin" && password === "password") {
+        //         modal.hide(); 
+        //         handleOnAdmin(vendors); 
+        //         return;
+        //     }
     
         
-            const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
+        //     const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
     
-            if (matchingVendor && password === "mis321") {
-                modal.hide(); 
-                vendorPage(); 
-            } else {
-                document.getElementById("login-output").textContent = "Invalid username or password.";
-            }
-        });
-    }
+        //     if (matchingVendor && password === "mis321") {
+        //         modal.hide(); 
+        //         vendorPage(); 
+        //     } else {
+        //         document.getElementById("login-output").textContent = "Invalid username or password.";
+        //     }
+        // });
+
     function handleBecomeAVendor() {
         const appDiv = document.getElementById("app");
     

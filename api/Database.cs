@@ -1,3 +1,4 @@
+using System.Globalization;
 using api.Models;
 using MySqlConnector;
 
@@ -650,6 +651,34 @@ namespace api
             }
         }
 
+        public async Task<int> GetVendorCount(int eventID)
+        {
+            int count;
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select count(distinct vendor_id) as count
+            from uses
+            where event_id = @event_id;", connection);
+
+            command.Parameters.AddWithValue("@event_id", eventID);
+            command.Prepare();
+
+            using var reader = await command.ExecuteReaderAsync();
+            if(await reader.ReadAsync())
+            {
+                count = reader.GetInt32(0);
+            }
+            else
+            {
+                count = 0;
+            }
+
+            return count;
+        }
+
         public async Task InsertUseAsync(Uses use)
         {
             try{
@@ -1113,7 +1142,5 @@ namespace api
                 Console.WriteLine(e.Message);
             }
         }
-
-
     }
 }

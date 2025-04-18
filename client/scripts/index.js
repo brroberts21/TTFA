@@ -638,11 +638,11 @@ async function handleOnAdmin(vendors) {
     sortedVendors.forEach((vendor) => {
         const row = document.createElement("tr");
         row.innerHTML =  `
-            <td>${vendor.ownerFirstName} ${vendor.ownerLastName}</td>
-            <td>${vendor.phone}</td>
             <td>${vendor.vendorName}</td>
-            <td>${vendor.email}</td>
-          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+            <td>${vendor.vendorPhone}</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.Email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approve? 'Deny ' : 'Approve'}</button></td>
            
         `;
         tbody.appendChild(row);
@@ -883,6 +883,11 @@ function handleLogin(vendor){
                   <div class="mb-3">
                     <label for="login-password" class="form-label">Password</label>
                     <input type="password" class="form-control" id="login-password" required>
+                    <div class="mb-3">
+                <label for="vendor-dropdown" class="form-label">Select Category</label>
+                <select class="form-select" id="vendor-dropdown" required>
+                  <option value="" disabled selected>Select a category</option>
+                </select>
                   </div>
                   <div id="login-output" class="text-danger mb-2"></div>
                   <button type="submit" class="btn btn-primary">Apply</button>
@@ -894,7 +899,20 @@ function handleLogin(vendor){
         `;
     
         appDiv.appendChild(vendorModal);
-    
+    handleCategoryTypeDropdown();
         const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
         modal.show();
+    }
+
+    
+    function handleCategoryTypeDropdown() {
+        const categoryTypes = ["Groceries", "Clothing", "Art", "Food", "Home Items", "Music", "Plants"];
+        const dropdown = document.getElementById("vendor-dropdown");
+    
+        categoryTypes.forEach(type => {
+            const option = document.createElement("option");
+            option.value = type;
+            option.textContent = type;
+            dropdown.appendChild(option);
+        });
     }

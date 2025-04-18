@@ -35,10 +35,10 @@ function createNavbar()
     navbar.innerHTML = `
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#">Tuscaloosa Trade Fair Association</a>
-        
-        <button type="button" class="btn btn-primary" id="main-btn" onclick="handleBecomeAVendor()">Become A Vendor</button>
-        <button type="button" class="btn btn-primary" id="main-btn" onclick="handleLogin()">Log-In</button>
-
+        <div class="ms-auto d-flex gap-2">
+            <button type="button" class="btn btn-primary" id="main-btn" id="become-vendor-btn" onclick="handleBecomeAVendor()">Become A Vendor</button>
+            <button type="button" class="btn btn-primary" id="main-btn" onclick="handleLogin()">Log-In</button>
+        </div>
     </div>
     `
     appDiv.appendChild(navbar)
@@ -110,7 +110,10 @@ function createEventCards()
 {
     let sortedEvents = events.sort((a, b) => new Date(a.date) - new Date(b.date))
     const carousel = document.getElementById("innerCarousel")
-    sortedEvents.forEach((event, index) => {        
+    
+    const topFiveEvents = sortedEvents.slice(0, 5)
+
+    topFiveEvents.forEach((event, index) => {        
         const carouselSlide = document.createElement("div")
         carouselSlide.className = index === 0 ? "carousel-item active" : "carousel-item"
 
@@ -120,7 +123,10 @@ function createEventCards()
         <div class="card event-card" style="width: 100%; height: 100%;">
             <div class="card-body">
                 <h5 class="card-title" style="color: rgb(5,20,100)">${event.name}</h5>
-                <h6 class="card-subtitle mb-2 text-body-secondary">${new Date(event.date).toLocaleDateString()} | ${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</h6>
+                <h6 class="card-subtitle mb-2 text-body-secondary">
+                    ${new Date(event.date).toLocaleDateString()} | ${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to 
+                    ${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </h6>
                 <p class="card-text">${event.description}</p>
             </div>
         </div>
@@ -374,12 +380,10 @@ function handleVendorTypeDropdown()
     )
 }
 
-function vendorTable()
+async function vendorTable()
 {
     let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName))
-    console.log(sortedVendors)
     const appDiv = document.getElementById("app")
-
     const container = document.createElement("div")
     container.className = "container"
     const table = document.createElement("table")
@@ -390,7 +394,8 @@ function vendorTable()
     table.appendChild(thead)
 
     const tbody = document.createElement("tbody")
-    sortedVendors.forEach((vendor) => {
+    for(const vendor of sortedVendors)
+    {
         const row = document.createElement("tr")
         
         const button = document.createElement("button")
@@ -399,7 +404,9 @@ function vendorTable()
         button.textContent = "More Info"
         button.setAttribute("data-bs-toggle", "modal")
         button.setAttribute("data-bs-target", "#vendorInfoModal")
-        button.addEventListener("click", () => vendorInfo(vendor))
+        button.addEventListener("click", async () => {
+            await vendorInfo(vendor)
+        })
         row.appendChild(document.createElement("td")).appendChild(button)
 
         const vendorName = document.createElement("td")
@@ -409,12 +416,18 @@ function vendorTable()
         vendorType.innerHTML = `${vendor.type}`
         row.appendChild(vendorType) 
         tbody.appendChild(row)
-    })
+    }
 
     table.appendChild(tbody)
     container.appendChild(table)
     appDiv.appendChild(container)
 
+    createVendorInfoModal()
+}
+
+function createVendorInfoModal()
+{
+    const appDiv = document.getElementById("app")
     const modal = document.createElement("div")
     modal.innerHTML =`
     <div class="modal fade" id="vendorInfoModal" tabindex="-1" aria-labelledby="vendorInfoLabel" aria-hidden="true">
@@ -434,7 +447,7 @@ function vendorTable()
     appDiv.appendChild(modal)
 }
 
-function vendorInfo(vendor)
+async function vendorInfo(vendor)
 {
     const vendorModalHeader = document.getElementById("vendorInfoLabel")
     vendorModalHeader.innerHTML = `Vendor Profile`
@@ -449,10 +462,11 @@ function vendorInfo(vendor)
     </ul>
     <h5>${vendor.vendorName}'s Events:</h5>
     <div id="vendorModalTable" class=container>
-
+        
     </div>
     `
-    vendorEventsTable(vendor.id)
+
+    await vendorEventsTable(vendor.id)
 }
 
 async function vendorEventsTable(vendorID)
@@ -462,6 +476,7 @@ async function vendorEventsTable(vendorID)
     let sortedEvents = vendorEvents.sort((a, b) => new Date(a.date) - new Date(b.date))
     
     const tableDiv = document.getElementById("vendorModalTable")
+    
     if(vendorEvents.length > 0)
     {
         const table = document.createElement("table")
@@ -475,12 +490,26 @@ async function vendorEventsTable(vendorID)
         table.appendChild(thead)
 
         const tbody = document.createElement("tbody")
-        for (const event of sortedEvents) {
-            const boothNum = await getBoothNumber(event.id, vendorID);
-            const row = document.createElement("tr");
-            row.innerHTML = `<td>${event.name}</td><td>${new Date(event.date).toLocaleDateString()}</td><td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td><td>${boothNum}</td>`;
-            tbody.appendChild(row);
-        }
+        sortedEvents.forEach((event, index) => {
+            const row = document.createElement("tr")
+            row.innerHTML = `
+                <td>${event.name}</td>
+                <td>${new Date(event.date).toLocaleDateString()}</td>
+                <td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td class="booth-number-entry">Loading...</td>`
+            tbody.appendChild(row)
+
+            const boothCell = row.querySelector(".booth-number-entry")
+            
+            getBoothNumber(event.id, vendorID)
+                .then((boothNumber) => {
+                    boothCell.textContent = boothNumber || "N/A"
+                })
+                .catch(() => {
+                    boothCell.textContent = "Error"
+                })
+        })
 
         table.appendChild(tbody)
         tableDiv.appendChild(table)

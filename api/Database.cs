@@ -2,14 +2,16 @@ using System.Globalization;
 using api.Models;
 using MySqlConnector;
 
+using DotNetEnv;
 namespace api
 {
     public class Database
     {
-        private string cs = "Server=ijj1btjwrd3b7932.cbetxkdyhwsb.us-east-1.rds.amazonaws.com;User ID=sb665amfr0pynuyz;Password=wqayxcinhauzfivu;Database=o8gync8ricmopt1y";
-
+        private string connectionStringOriginal = Environment.GetEnvironmentVariable("DATABASE_URL")!;
         public async Task<List<Vendor>> GetAllVendorsAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Vendor> vendors = [];
 
             using var connection = new MySqlConnection(cs);
@@ -23,13 +25,16 @@ namespace api
                 vendors.Add(new Vendor(){
                     ID = reader.GetInt32(0),
                     VendorName = reader.GetString(1),
-                    OwnerFirstName = reader.GetString(2),
-                    OwnerLastName = reader.GetString(3),
-                    OwnerEmail = reader.GetString(4),
-                    OwnerPassword = reader.GetString(5),
-                    OwnerPhone = reader.GetString(6),
-                    Type = reader.GetString(7),
-                    Deleted = reader.GetString(8)
+                    VendorEmail = reader.GetString(2),
+                    VendorPhone = reader.GetString(3),
+                    VendorSocial = reader.IsDBNull(reader.GetOrdinal("vendor_social")) ? null : reader.GetString("vendor_social"),
+                    OwnerFirstName = reader.GetString(5),
+                    OwnerLastName = reader.GetString(6),
+                    OwnerEmail = reader.GetString(7),
+                    OwnerPassword = reader.GetString(8),
+                    OwnerPhone = reader.GetString(9),
+                    Type = reader.GetString(10),
+                    Deleted = reader.GetString(11)
                 });
             }
 
@@ -38,6 +43,8 @@ namespace api
 
         public async Task<Vendor> GetVendorAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -50,13 +57,16 @@ namespace api
                 Vendor vendor = new(){
                     ID = reader.GetInt32(0),
                     VendorName = reader.GetString(1),
-                    OwnerFirstName = reader.GetString(2),
-                    OwnerLastName = reader.GetString(3),
-                    OwnerEmail = reader.GetString(4),
-                    OwnerPassword = reader.GetString(5),
-                    OwnerPhone = reader.GetString(6),
-                    Type = reader.GetString(7),
-                    Deleted = reader.GetString(8)
+                    VendorEmail = reader.GetString(2),
+                    VendorPhone = reader.GetString(3),
+                    VendorSocial = reader.IsDBNull(reader.GetOrdinal("vendor_social")) ? null : reader.GetString("vendor_social"),
+                    OwnerFirstName = reader.GetString(5),
+                    OwnerLastName = reader.GetString(6),
+                    OwnerEmail = reader.GetString(7),
+                    OwnerPassword = reader.GetString(8),
+                    OwnerPhone = reader.GetString(9),
+                    Type = reader.GetString(10),
+                    Deleted = reader.GetString(11)
                 };
                 return vendor;
                 
@@ -72,14 +82,23 @@ namespace api
         // if there is another entry containing the same vendor name or owner email, the data entry will not work
         public async Task InsertVendorAsync(Vendor vendor)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
 
-                string sql = $"insert into o8gync8ricmopt1y.vendors (vendor_name, owner_first_name, owner_last_name, owner_email, owner_password, owner_phone, vendor_type, deleted) values (@vendor_name, @owner_first_name, @owner_last_name, @owner_email, @owner_password, @owner_phone, @vendor_type, @deleted);";
+                string sql = $@"
+                insert into o8gync8ricmopt1y.vendors 
+                (vendor_name, vendor_email, vendor_phone, vendor_social, owner_first_name, owner_last_name, owner_email, owner_password, owner_phone, vendor_type, deleted) 
+                values 
+                (@vendor_name, @vendor_email, @vendor_phone, @vendor_social, @owner_first_name, @owner_last_name, @owner_email, @owner_password, @owner_phone, @vendor_type, @deleted);";
 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@vendor_name", vendor.VendorName);
+                command.Parameters.AddWithValue("@vendor_email", vendor.VendorEmail);
+                command.Parameters.AddWithValue("@vendor_phone", vendor.VendorPhone);
+                command.Parameters.AddWithValue("@vendor_social", vendor.VendorSocial);
                 command.Parameters.AddWithValue("@owner_first_name", vendor.OwnerFirstName);
                 command.Parameters.AddWithValue("@owner_last_name", vendor.OwnerLastName);
                 command.Parameters.AddWithValue("@owner_email", vendor.OwnerEmail);
@@ -100,6 +119,8 @@ namespace api
 
         public async Task DeleteVendorAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -125,16 +146,26 @@ namespace api
         // if there is another entry containing the same vendor name or owner email, the data entry will not work
         public async Task UpdateVendorAsync(Vendor vendor)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
 
-                string sql = "update o8gync8ricmopt1y.vendors set vendor_name = @vendor_name, owner_first_name = @owner_first_name, owner_last_name = @owner_last_name, owner_email = @owner_email, owner_password = @owner_password, owner_phone = @owner_phone, vendor_type = @vendor_type, deleted = @deleted where vendor_id = @id";
+                string sql = @"
+                update o8gync8ricmopt1y.vendors set 
+                vendor_name = @vendor_name, vendor_email = @vendor_email, vendor_phone = @vendor_phone, vendor_social = @vendor_social,
+                owner_first_name = @owner_first_name, owner_last_name = @owner_last_name, 
+                owner_email = @owner_email, owner_password = @owner_password, owner_phone = @owner_phone, 
+                vendor_type = @vendor_type, deleted = @deleted where vendor_id = @id";
                 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@id", vendor.ID);
                 command.Parameters.AddWithValue("@vendor_name", vendor.VendorName);
+                command.Parameters.AddWithValue("@vendor_email", vendor.VendorEmail);
+                command.Parameters.AddWithValue("@vendor_phone", vendor.VendorPhone);
+                command.Parameters.AddWithValue("@vendor_social", vendor.VendorSocial);
                 command.Parameters.AddWithValue("@owner_first_name", vendor.OwnerFirstName);
                 command.Parameters.AddWithValue("@owner_last_name", vendor.OwnerLastName);
                 command.Parameters.AddWithValue("@owner_email", vendor.OwnerEmail);
@@ -155,6 +186,8 @@ namespace api
 
         public async Task<List<Event>> GetAllEventsAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Event> events = [];
 
             using var connection = new MySqlConnection(cs);
@@ -183,6 +216,8 @@ namespace api
 
         public async Task<Event> GetEventAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -212,6 +247,8 @@ namespace api
 
         public async Task<List<Event>> GetVendorEvents(int vendorID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Event> events = [];
 
             using var connection = new MySqlConnection(cs);
@@ -261,6 +298,8 @@ namespace api
         */
         public async Task InsertEventAsync(Event newEvent)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -287,6 +326,8 @@ namespace api
 
         public async Task DeleteEventAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -309,6 +350,8 @@ namespace api
 
         public async Task UpdateEventAsync(Event updatedEvent)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -337,6 +380,8 @@ namespace api
     
         public async Task<List<Admin>> GetAllAdminAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Admin> admins = [];
 
             using var connection = new MySqlConnection(cs);
@@ -362,6 +407,8 @@ namespace api
 
         public async Task<Admin> GetAdminAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -392,6 +439,8 @@ namespace api
         // the unique attribute is admin_email
         public async Task InsertAdminAsync(Admin admin)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -418,6 +467,8 @@ namespace api
 
         public async Task DeleteAdminAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -442,6 +493,8 @@ namespace api
         // the unique attribute is admin_email
         public async Task UpdateAdminAsync(Admin admin)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -470,6 +523,8 @@ namespace api
 
         public async Task<List<Booth>> GetAllBoothsAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Booth> booths = [];
 
             using var connection = new MySqlConnection(cs);
@@ -492,6 +547,8 @@ namespace api
 
         public async Task<Booth> GetBoothAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -517,6 +574,8 @@ namespace api
 
         public async Task InsertBoothAsync(Booth booth)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -540,6 +599,8 @@ namespace api
 
         public async Task DeleteBoothAsync(int id)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -562,6 +623,8 @@ namespace api
 
         public async Task UpdateBoothAsync(Booth booth)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -587,6 +650,8 @@ namespace api
 
         public async Task<List<Uses>> GetAllUsesAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Uses> uses = [];
 
             using var connection = new MySqlConnection(cs);
@@ -619,6 +684,8 @@ namespace api
 
         public async Task<Uses> GetUseAsync(int eventID, int vendorID, int boothID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -653,6 +720,8 @@ namespace api
 
         public async Task<int> GetVendorCount(int eventID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             int count;
 
             using var connection = new MySqlConnection(cs);
@@ -679,8 +748,40 @@ namespace api
             return count;
         }
 
+        public async Task<int> GetBoothNumber(int eventID, int vendorID)
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            int booth;
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select booth_id
+            from uses
+            where event_id = @event_id and vendor_id = @vendor_id;", connection);
+
+            command.Parameters.AddWithValue("@event_id", eventID);
+            command.Parameters.AddWithValue("@vendor_id", vendorID);
+            command.Prepare();
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                booth = reader.GetInt32(0);
+            }
+            else{
+                booth = 0;
+            }
+
+            return booth;
+        }
+
         public async Task InsertUseAsync(Uses use)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -705,6 +806,8 @@ namespace api
 
         public async Task DeleteUseAsync(int eventID, int vendorID, int boothID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -731,6 +834,8 @@ namespace api
 
         public async Task UpdateUseAsync(int oldEventID, int oldVendorID, int oldBoothID, Uses use)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -768,6 +873,8 @@ namespace api
 
         public async Task<List<Manages>> GetAllManagesAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Manages> manages = [];
 
             using var connection = new MySqlConnection(cs);
@@ -798,6 +905,8 @@ namespace api
 
         public async Task<Manages> GetManageAsync(int adminID, int eventID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -830,6 +939,8 @@ namespace api
 
         public async Task InsertManageAsync(Manages manages)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -853,6 +964,8 @@ namespace api
 
         public async Task DeleteManageAsync(int adminID, int eventID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -878,6 +991,8 @@ namespace api
 
         public async Task UpdateManageAsync(int oldAdminID, int oldEventID, Manages manage)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -911,6 +1026,8 @@ namespace api
 
         public async Task<List<Approval>> GetAllApprovalsAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Approval> approvals = [];
 
             using var connection = new MySqlConnection(cs);
@@ -940,6 +1057,8 @@ namespace api
 
         public async Task<Approval> GetApprovalAsync(int adminID, int vendorID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -972,6 +1091,8 @@ namespace api
 
         public async Task InsertApprovalAsync(Approval approval)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -995,6 +1116,8 @@ namespace api
 
         public async Task UpdateApprovalAsync(int oldAdminID, int oldVendorID, Approval approval)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);
@@ -1028,6 +1151,8 @@ namespace api
 
         public async Task<List<Deletion>> GetAllDeletionsAsync()
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             List<Deletion> deletions = [];
 
             using var connection = new MySqlConnection(cs);
@@ -1057,6 +1182,8 @@ namespace api
 
         public async Task<Deletion> GetDeletionAsync(int adminID, int vendorID)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -1089,6 +1216,8 @@ namespace api
 
         public async Task InsertDeletionAsync(Deletion deletion)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try{
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
@@ -1112,6 +1241,8 @@ namespace api
 
         public async Task UpdateDeletionAsync(int oldAdminID, int oldVendorID, Deletion deletion)
         {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
             try
             {
                 using var connection = new MySqlConnection(cs);

@@ -28,13 +28,14 @@ async function attendeePage()
 function createNavbar()
 {
     const appDiv = document.getElementById("app")
+    appDiv.innerHTML = ""
     const navbar = document.createElement("nav")
     navbar.className = "navbar sticky-top";
     navbar.style.backgroundColor = "rgb(5,20,100)";
     navbar.style.color = "white";
     navbar.innerHTML = `
     <div class="container-fluid">
-        <a class="navbar-brand mb-0 h1" style="color: white" href="#">Tuscaloosa Trade Fair Association</a>
+        <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
         <div class="ms-auto d-flex gap-2">
             <button type="button" class="btn btn-primary" id="main-btn" id="become-vendor-btn" onclick="handleBecomeAVendor()">Become A Vendor</button>
             <button type="button" class="btn btn-primary" id="main-btn" onclick="handleLogin()">Log-In</button>
@@ -309,7 +310,9 @@ function vendorTableDescription()
     <p id="venTabDescrip">Here is the list of local companies that are active vendors at our events. 
     For more information on these vendors and the events they attend, click the "More Info" button. If you're looking for a specific vendor, feel free to use
     the searchbar to see if they are registered as vendors with the TTFA. You can also filter our vendors by their goods sold using the dropdown menu by the search bar.
+    Here is the list of goods our vendors are currently selling:
     </p>
+    <ul id=typeList> </ul>
     <h5 style="color: rgb(5,20,100)">Search for a Vendor:</h5>
     <div style="display: flex; align-items: center; gap: 10px;">
         <input type="text" id="searchbar" onkeyup="handleSearch()" placeholder="Enter the vendor's name here...">
@@ -319,7 +322,19 @@ function vendorTableDescription()
     </div>
     `
     appDiv.appendChild(container)
+    populateTypeList()
     handleVendorTypeDropdown()
+}
+
+function populateTypeList()
+{
+    list = document.getElementById("typeList")
+    const goodsTypes = [... new Set(vendors.map(v => v.type))]
+    goodsTypes.forEach(type =>{
+        const item = document.createElement("li")
+        item.textContent = type
+        list.appendChild(item)
+    })
 }
 
 function handleSearch()
@@ -527,8 +542,57 @@ function vendorPage(){
 
     vendorPageDescription();
     eventTable();
+    function vendorPage(){
+    const app = document.getElementById("app");
+    app.innerHTML = ""; 
+
+    vendorPageDescription();
+    eventTable();
+}
 }
 
+function vendorPageDescription(){
+    const app = document.getElementById("app"); 
+    app.innerHTML = "";  
+
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML =  `
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>`;  
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    let sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
+
+    sortedEvents.forEach((event) => {
+        const row = document.createElement("tr");
+        row.innerHTML =  `
+            <td>${event.name}</td>
+            <td>${event.eventDescription }</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+           
+        `;
+        tbody.appendChild(row);
+    });
+
+
+    table.appendChild(tbody);
+    app.appendChild(table); 
+
+
+
+}
    
 
 function eventTable(events){
@@ -553,25 +617,17 @@ function eventTable(events){
     const tbody = document.createElement("tbody")
     sortedEvents.forEach((event) => {
         
-        
-    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName));
-
-    sortedVendors.forEach((vendor) => {
-        const row = document.createElement("tr");
-        row.innerHTML =  `
+        const row = document.createElement("tr")
+        row.innerHTML = `
+            <td>
+                <button class="btn btn-primary" onclick="handleOnRegister(${event.id})">
+                    ${event.register ? 'Unregister' : 'Register'}
+                </button>
+            </td>
             <td>${event.eventName}</td>
-            <td>${event.date}</td>
-             <td>${event.description}</td>
-            <td>${event.startTime}</td>
-
-          <td><button onclick="handleOnRegister(${event.id})">${event.register? 'Register' : 'Unregister'}</button></td>
-           
-        `;
-        tbody.appendChild(row);
-    });
-
-   
-    });
+        `
+        tbody.appendChild(row)
+    })
 
     table.appendChild(tbody)
     container.appendChild(table)
@@ -604,11 +660,11 @@ async function handleOnAdmin(vendors) {
     sortedVendors.forEach((vendor) => {
         const row = document.createElement("tr");
         row.innerHTML =  `
+            <td>${vendor.ownerFirstName} ${vendor.ownerLastName}</td>
+            <td>${vendor.phone}</td>
             <td>${vendor.vendorName}</td>
-            <td>${vendor.vendorPhone}</td>
-            <td>${vendor.vendorName}</td>
-            <td>${vendor.Email}</td>
-          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approve? 'Deny ' : 'Approve'}</button></td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
            
         `;
         tbody.appendChild(row);
@@ -628,8 +684,318 @@ async function handleOnApprove(vendorID) {
 
    await  handleOnLoad();
 }
+function EventCreationForm()
+{
+    const container = document.getElementById("login-form-container")
+    const form = document.createElement("div")
+    form.innerHTML = `
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow p-4">
+                <form onsubmit="handleAddEvent(event)">
+                    <div class="mb-3">
+                        <label for="eventName" class="form-label">eventName:</label>
+                        <input type="text" class="form-control" id="eventName" name="EventName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventDescription " class="form-label">Event Description:</label>
+                        <input type="description" class="form-control" id="eventDescription" name="EventDescription" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventDate class="form-label">Event Date:</label>
+                        <input type="text" class="form-control" id="eventDate" name="EventDate" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventStartTime class="form-label">Event Start Time:</label>
+                        <input type="text" class="form-control" id="eventDate" name="eventStartTime" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventEndTime class="form-label">Event End Time:</label>
+                        <input type="text" class="form-control" id="eventEndTime " name="eventEndTime" required>
+                    </div>
+                     
+                    </div>
+
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="main-btn">Create event</button>
+                </form>
+                </div>
+            </div>
+        </div>
+    `
+    container.appendChild(form)
+}
+async function handleAddEvent(event){
+    event.preventDefault()
+
+    const eventName = document.getElementById("eventName").value
+    const eventDescription  = document.getElementById("eventDescripiton").value
+    const eventDate = document.getElementById("eventDate").value
+    const eventStartTime = document.getElementById("eventStartTime").value
+    const eventEndTime = document.getElementById("eventEndTime").value
 
 
+    const newEvent = {
+        eventName : eventName,
+        eventDescription: eventDescription,
+        eventDate: eventDate,
+        eventStartTime :eventStartTime,
+        eventEndTime :eventEndTime,
+         deleted: "n"
+    }
+    
+    url = baseUrl + "Event"
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(newEvent),
+    })
+
+    if (response.ok) 
+    {
+        alert("New Event created successfully!")
+        handleOnLoad()
+    } 
+    else 
+    {
+        alert("Failed to create event.")
+    }
+}
+
+
+
+function vendorPageDescription(){
+    const app = document.getElementById("app"); 
+    app.innerHTML = "";  
+
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML =  `
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>`;  
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    let sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
+
+    sortedEvents.forEach((event) => {
+        const row = document.createElement("tr");
+        row.innerHTML =  `
+            <td>${event.name}</td>
+            <td>${event.eventDescription }</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+           
+        `;
+        tbody.appendChild(row);
+    });
+
+
+    table.appendChild(tbody);
+    app.appendChild(table); 
+
+
+
+}
+   
+
+function eventTable(events){
+   
+    console.log(sortedEvents)
+    const appDiv = document.getElementById("app")
+
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+
+    const container = document.createElement("div")
+    container.className = "container"
+    const table = document.createElement("table")
+    table.className = "table table-striped table-bordered table-primary table-hover"
+    table.style.tableLayout = "auto";
+    table.style.width = "auto";
+    table.style.whiteSpace = "nowrap";
+    const thead = document.createElement("thead")
+    thead.innerHTML = "<tr><th></th><th>Event Name</th><th></tr>"
+    table.appendChild(thead)
+
+    const tbody = document.createElement("tbody")
+    sortedEvents.forEach((event) => {
+        
+        const row = document.createElement("tr")
+        row.innerHTML = `
+            <td>
+                <button class="btn btn-primary" onclick="handleOnRegister(${event.id})">
+                    ${event.register ? 'Unregister' : 'Register'}
+                </button>
+            </td>
+            <td>${event.eventName}</td>
+        `
+        tbody.appendChild(row)
+    })
+
+    table.appendChild(tbody)
+    container.appendChild(table)
+    appDiv.appendChild(container)
+}
+
+// admin home page methods
+async function handleOnAdmin(vendors) {
+    const app = document.getElementById("app"); 
+    app.innerHTML = "";  
+
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML =  `
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>`;  
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName));
+
+    sortedVendors.forEach((vendor) => {
+        const row = document.createElement("tr");
+        row.innerHTML =  `
+            <td>${vendor.ownerFirstName} ${vendor.ownerLastName}</td>
+            <td>${vendor.phone}</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+           
+        `;
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    app.appendChild(table);
+    const buttonContainer = document.createElement("div");
+    buttonContainer.className = "text-center my-4";
+
+    buttonContainer.innerHTML = `
+        <button class="btn btn-success" onclick="EventCreationForm()">Create New Event</button>
+    `;
+
+    app.appendChild(buttonContainer); 
+} 
+   
+async function handleOnApprove(vendorID) {
+    const response = await fetch(url + "/" + vendorID,{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+   await  handleOnLoad();
+}
+function EventCreationForm()
+{
+    const container = document.getElementById("login-form-container")
+    const form = document.createElement("div")
+    form.innerHTML = `
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow p-4">
+                <form onsubmit="handleAddEvent(event)">
+                    <div class="mb-3">
+                        <label for="eventName" class="form-label">eventName:</label>
+                        <input type="text" class="form-control" id="eventName" name="EventName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventDescription " class="form-label">Event Description:</label>
+                        <input type="description" class="form-control" id="eventDescription" name="EventDescription" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventDate class="form-label">Event Date:</label>
+                        <input type="text" class="form-control" id="eventDate" name="EventDate" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventStartTime class="form-label">Event Start Time:</label>
+                        <input type="text" class="form-control" id="eventDate" name="eventStartTime" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="eventEndTime class="form-label">Event End Time:</label>
+                        <input type="text" class="form-control" id="eventEndTime " name="eventEndTime" required>
+                    </div>
+                     
+                    </div>
+
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="main-btn">Create event</button>
+                </form>
+                </div>
+            </div>
+        </div>
+    `
+    container.appendChild(form)
+}
+async function handleAddEvent(event){
+    event.preventDefault()
+
+    const eventName = document.getElementById("eventName").value
+    const eventDescription  = document.getElementById("eventDescripiton").value
+    const eventDate = document.getElementById("eventDate").value
+    const eventStartTime = document.getElementById("eventStartTime").value
+    const eventEndTime = document.getElementById("eventEndTime").value
+
+
+    const newEvent = {
+        eventName : eventName,
+        eventDescription: eventDescription,
+        eventDate: eventDate,
+        eventStartTime :eventStartTime,
+        eventEndTime :eventEndTime,
+         deleted: "n"
+    }
+    
+    url = baseUrl + "Event"
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(newEvent),
+    })
+
+    if (response.ok) 
+    {
+        alert("New Event created successfully!")
+        handleOnLoad()
+    } 
+    else 
+    {
+        alert("Failed to create event.")
+    }
+}
 // data methods
 async function getData()
 {
@@ -799,7 +1165,7 @@ function handleLogin(vendor){
         const loginForm = document.getElementById("login-form");
         loginForm.addEventListener("submit", function (event) {
             
-            
+    
             const username = document.getElementById("login-username").value.trim();
             const password = document.getElementById("login-password").value.trim();
     
@@ -811,7 +1177,7 @@ function handleLogin(vendor){
             }
     
         
-            const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
+            const matchingVendor = vendors.find(v => v.vendorEmail.toLowerCase() === username.toLowerCase());
     
             if (matchingVendor && password === "mis321") {
                 modal.hide(); 
@@ -820,64 +1186,177 @@ function handleLogin(vendor){
                 document.getElementById("login-output").textContent = "Invalid username or password.";
             }
         });
-    }
-    function handleBecomeAVendor() {
-        const appDiv = document.getElementById("app");
+}
+
+function handleBecomeAVendor() {
+    const appDiv = document.getElementById("app");
+    appDiv.innerHTML = ""
+    AccountCreationNav()
+    AccountCreationHeader()
+    AccountCreationForm()
+}
+
+function AccountCreationNav()
+{
+    const appDiv = document.getElementById("app")
+    appDiv.innerHTML = ""
+    const navbar = document.createElement("nav")
+    navbar.className = "navbar sticky-top"
+    navbar.style.backgroundColor = "rgb(5,20,100)"
+    navbar.style.color = "white"
+    navbar.innerHTML = `
+    <div class="container-fluid">
+        <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
+    </div>
+    `
+    appDiv.appendChild(navbar)
+
     
-        const vendorModal = document.createElement("div");
-        vendorModal.innerHTML = `
-        <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
-                <h1 class="modal-title fs-5" id="vendorModalLabel">Become a Vendor</h1>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p class="mb-3">
-                  Describe your company, including the items you sell and any information you'd like to be visible to our customers.
-                </p>
-                <div class="mb-3">
-                  <label for="vendor-description" class="form-label">Company Description</label>
-                  <textarea class="form-control" id="vendor-description" rows="4" placeholder="Tell us about your business..."></textarea>
-                </div>
-                <form id="login-form">
-                  <div class="mb-3">
-                    <label for="login-username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="login-username" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="login-password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="login-password" required>
+}
+
+function AccountCreationHeader()
+{
+    const appDiv = document.getElementById("app")
+    const container = document.createElement("div")
+    container.className = "container py-4"
+    container.id = "login-form-container"
+
+    const header = document.createElement("h2")
+    header.className = "text-center mb-4"
+    header.style.color = "rgb(5,20,100)"
+    header.innerText = "Thanks for choosing the TTFA! Create your vendor account below."
+
+    container.appendChild(header)
+    appDiv.appendChild(container)
+}
+
+function AccountCreationForm()
+{
+    const container = document.getElementById("login-form-container")
+    const form = document.createElement("div")
+    form.innerHTML = `
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow p-4">
+                <form onsubmit="handleAddVendor(event)">
                     <div class="mb-3">
-                <label for="vendor-dropdown" class="form-label">Select Category</label>
-                <div class="btn-group">
-                  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Dropdown
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Groceries/a></li>
-                    <li><a class="dropdown-item" href="#">Clothing</a></li>
-                    <li><a class="dropdown-item" href="#">Art</a></li>
-                     <li><a class="dropdown-item" href="#">Food</a></li>
-                      <li><a class="dropdown-item" href="#">Home items </a></li>
-                       <li><a class="dropdown-item" href="#">Music </a></li>
-                        <li><a class="dropdown-item" href="#">Plants </a></li>
-                  </ul>
-                </div>
-                  <div id="login-output" class="text-danger mb-2"></div>
-                  <button type="submit" class="btn btn-primary">Apply</button>
+                        <label for="vendorName" class="form-label">Vendor Name:</label>
+                        <input type="text" class="form-control" id="vendorName" name="vendorName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorType" class="form-label">Goods Sold</label>
+                        <select class="form-select" id="vendorType" name="vendorType" required>
+                            <option value="" selected disabled hidden>Choose goods type</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Art">Art</option>
+                            <option value="Food">Food</option>
+                            <option value="Home Items">Home Items</option>
+                            <option value="Music">Music</option>
+                            <option value="Plants">Plants</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="mb-3">
+                        <label for="vendorEmail" class="form-label">Vendor Email:</label>
+                        <input type="email" class="form-control" id="vendorEmail" name="vendorEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorPhone" class="form-label">Vendor Phone Number:</label>
+                        <input type="text" class="form-control" id="vendorPhone" name="VendorPhone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="socialMedia" class="form-label">Social Media (optional):</label>
+                        <div class="input-group">
+                            <span class="input-group-text">@</span>
+                            <input type="text" class="form-control" id="socialMedia" name="socialMedia">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                    <div class="col">
+                        <label for="ownerFirst" class="form-label">Owner First Name:</label>
+                        <input type="text" class="form-control" id="ownerFirst" name="ownerFirst">
+                    </div>
+                    <div class="col">
+                        <label for="ownerLast" class="form-label">Owner Last Name:</label>
+                        <input type="text" class="form-control" id="ownerLast" name="ownerLast">
+                    </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ownerPhone" class="form-label">Owner Phone:</label>
+                        <input type="text" class="form-control" id="ownerPhone" name="ownerPhone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ownerEmail" class="form-label">Owner Email (Account Username):</label>
+                        <input type="email" class="form-control" id="ownerEmail" name="ownerEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Account Password:</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="main-btn">Create account</button>
                 </form>
-              </div>
+                </div>
             </div>
-          </div>
         </div>
-        `;
-    
-        appDiv.appendChild(vendorModal);
+    `
+    container.appendChild(form)
+}
 
-        const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
-        modal.show();
+async function handleAddVendor(event){
+    event.preventDefault()
+
+    const name = document.getElementById("vendorName").value
+    const type = document.getElementById("vendorType").value
+    const vendorEmail = document.getElementById("vendorEmail").value
+    const vendorPhone = document.getElementById("vendorPhone").value
+    const vendorSocialInput = document.getElementById("socialMedia").value
+    const vendorSocial = vendorSocialInput.trim() === "" ? null : vendorSocialInput.trim()
+    const ownerFirst = document.getElementById("ownerFirst").value
+    const ownerLast = document.getElementById("ownerLast").value
+    const ownerPhone = document.getElementById("ownerPhone").value
+    const ownerEmail = document.getElementById("ownerEmail").value
+    const password = document.getElementById("password").value
+
+    const newVendor = {
+        vendorEmail: vendorEmail,
+        vendorPhone: vendorPhone,
+        vendorSocial: vendorSocial,
+        vendorName: name,
+        ownerFirstName: ownerFirst,
+        ownerLastName: ownerLast,
+        ownerEmail: ownerEmail,
+        ownerPassword: password,
+        ownerPhone: ownerPhone,
+        type: type,
+        deleted: "n"
     }
-
     
+    url = baseUrl + "Vendor"
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(newVendor),
+    })
+
+    if (response.ok) 
+    {
+        alert("Vendor account created successfully!")
+        handleOnLoad()
+    } 
+    else 
+    {
+        alert("Failed to create vendor account.")
+    }
+}
+

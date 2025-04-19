@@ -13,7 +13,7 @@ namespace api.Models
 
         public string VendorPhone { get; set; }
 
-        public string? VendorSocial { get; set; }
+        public string VendorSocial { get; set; }
 
         public string VendorName { get; set; }
 

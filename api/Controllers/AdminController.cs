@@ -25,7 +25,7 @@ namespace MyApp.Namespace
             Admin admin = await db.GetAdminAsync(id);
             return admin;
         }
-        
+
         //make sure that you use a unique admin_email when testing
         // POST api/<AdminController>
         [HttpPost]
@@ -53,5 +53,8 @@ namespace MyApp.Namespace
             Database db = new();
             await db.DeleteAdminAsync(id);
         }
+
+        // aprove  the vendor 
+
     }
 }

@@ -63,6 +63,11 @@ p, li, h5 {
     background-color: rgb(75,156,211);
 }
 
+#main-btn:hover {
+    background-color: rgb(55,126,181);
+    color: white;
+}
+
 .carousel-control-prev-icon,
 .carousel-control-next-icon {
     filter: invert(22%) sepia(97%) saturate(748%) hue-rotate(178deg) brightness(91%) contrast(101%);

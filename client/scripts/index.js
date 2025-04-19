@@ -28,13 +28,14 @@ async function attendeePage()
 function createNavbar()
 {
     const appDiv = document.getElementById("app")
+    appDiv.innerHTML = ""
     const navbar = document.createElement("nav")
     navbar.className = "navbar sticky-top";
     navbar.style.backgroundColor = "rgb(5,20,100)";
     navbar.style.color = "white";
     navbar.innerHTML = `
     <div class="container-fluid">
-        <a class="navbar-brand mb-0 h1" style="color: white" href="#">Tuscaloosa Trade Fair Association</a>
+        <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
         <div class="ms-auto d-flex gap-2">
             <button type="button" class="btn btn-primary" id="main-btn" id="become-vendor-btn" onclick="handleBecomeAVendor()">Become A Vendor</button>
             <button type="button" class="btn btn-primary" id="main-btn" onclick="handleLogin()">Log-In</button>
@@ -309,7 +310,9 @@ function vendorTableDescription()
     <p id="venTabDescrip">Here is the list of local companies that are active vendors at our events. 
     For more information on these vendors and the events they attend, click the "More Info" button. If you're looking for a specific vendor, feel free to use
     the searchbar to see if they are registered as vendors with the TTFA. You can also filter our vendors by their goods sold using the dropdown menu by the search bar.
+    Here is the list of goods our vendors are currently selling:
     </p>
+    <ul id=typeList> </ul>
     <h5 style="color: rgb(5,20,100)">Search for a Vendor:</h5>
     <div style="display: flex; align-items: center; gap: 10px;">
         <input type="text" id="searchbar" onkeyup="handleSearch()" placeholder="Enter the vendor's name here...">
@@ -319,7 +322,19 @@ function vendorTableDescription()
     </div>
     `
     appDiv.appendChild(container)
+    populateTypeList()
     handleVendorTypeDropdown()
+}
+
+function populateTypeList()
+{
+    list = document.getElementById("typeList")
+    const goodsTypes = [... new Set(vendors.map(v => v.type))]
+    goodsTypes.forEach(type =>{
+        const item = document.createElement("li")
+        item.textContent = type
+        list.appendChild(item)
+    })
 }
 
 function handleSearch()
@@ -549,12 +564,12 @@ function vendorPageDescription(){
 
     const tbody = document.createElement("tbody");
 
-    let sortedEvents = events.sort((a, b) => a.eventName.localeCompare(b.eventName));
+    let sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
 
     sortedEvents.forEach((event) => {
         const row = document.createElement("tr");
         row.innerHTML =  `
-            <td>${event.eventName}</td>
+            <td>${event.name}</td>
             <td>${event.eventDescription }</td>
             <td>${vendor.vendorName}</td>
             <td>${vendor.email}</td>
@@ -854,47 +869,176 @@ function handleLogin(vendor){
                 document.getElementById("login-output").textContent = "Invalid username or password.";
             }
         });
-    }
-    function handleBecomeAVendor() {
-        const appDiv = document.getElementById("app");
+}
+
+function handleBecomeAVendor() {
+    const appDiv = document.getElementById("app");
+    appDiv.innerHTML = ""
+    AccountCreationNav()
+    AccountCreationHeader()
+    AccountCreationForm()
+}
+
+function AccountCreationNav()
+{
+    const appDiv = document.getElementById("app")
+    appDiv.innerHTML = ""
+    const navbar = document.createElement("nav")
+    navbar.className = "navbar sticky-top"
+    navbar.style.backgroundColor = "rgb(5,20,100)"
+    navbar.style.color = "white"
+    navbar.innerHTML = `
+    <div class="container-fluid">
+        <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
+    </div>
+    `
+    appDiv.appendChild(navbar)
+
     
-        const vendorModal = document.createElement("div");
-        vendorModal.innerHTML = `
-        <div class="modal fade" id="vendorModal" tabindex="-1" aria-labelledby="vendorModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
-                <h1 class="modal-title fs-5" id="vendorModalLabel">Become a Vendor</h1>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p class="mb-3">
-                  Describe your company, including the items you sell and any information you'd like to be visible to our customers.
-                </p>
-                <div class="mb-3">
-                  <label for="vendor-description" class="form-label">Company Description</label>
-                  <textarea class="form-control" id="vendor-description" rows="4" placeholder="Tell us about your business..."></textarea>
-                </div>
-                <form id="login-form">
-                  <div class="mb-3">
-                    <label for="login-username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="login-username" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="login-password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="login-password" required>
-                  </div>
-                  <div id="login-output" class="text-danger mb-2"></div>
-                  <button type="submit" class="btn btn-primary">Apply</button>
+}
+
+function AccountCreationHeader()
+{
+    const appDiv = document.getElementById("app")
+    const container = document.createElement("div")
+    container.className = "container py-4"
+    container.id = "login-form-container"
+
+    const header = document.createElement("h2")
+    header.className = "text-center mb-4"
+    header.style.color = "rgb(5,20,100)"
+    header.innerText = "Thanks for choosing the TTFA! Create your vendor account below."
+
+    container.appendChild(header)
+    appDiv.appendChild(container)
+}
+
+function AccountCreationForm()
+{
+    const container = document.getElementById("login-form-container")
+    const form = document.createElement("div")
+    form.innerHTML = `
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow p-4">
+                <form onsubmit="handleAddVendor(event)">
+                    <div class="mb-3">
+                        <label for="vendorName" class="form-label">Vendor Name:</label>
+                        <input type="text" class="form-control" id="vendorName" name="vendorName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorType" class="form-label">Goods Sold</label>
+                        <select class="form-select" id="vendorType" name="vendorType" required>
+                            <option value="" selected disabled hidden>Choose goods type</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Art">Art</option>
+                            <option value="Food">Food</option>
+                            <option value="Home Items">Home Items</option>
+                            <option value="Music">Music</option>
+                            <option value="Plants">Plants</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="mb-3">
+                        <label for="vendorEmail" class="form-label">Vendor Email:</label>
+                        <input type="email" class="form-control" id="vendorEmail" name="vendorEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorPhone" class="form-label">Vendor Phone Number:</label>
+                        <input type="text" class="form-control" id="vendorPhone" name="VendorPhone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="socialMedia" class="form-label">Social Media (optional):</label>
+                        <div class="input-group">
+                            <span class="input-group-text">@</span>
+                            <input type="text" class="form-control" id="socialMedia" name="socialMedia">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                    <div class="col">
+                        <label for="ownerFirst" class="form-label">Owner First Name:</label>
+                        <input type="text" class="form-control" id="ownerFirst" name="ownerFirst">
+                    </div>
+                    <div class="col">
+                        <label for="ownerLast" class="form-label">Owner Last Name:</label>
+                        <input type="text" class="form-control" id="ownerLast" name="ownerLast">
+                    </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ownerPhone" class="form-label">Owner Phone:</label>
+                        <input type="text" class="form-control" id="ownerPhone" name="ownerPhone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ownerEmail" class="form-label">Owner Email (Account Username):</label>
+                        <input type="email" class="form-control" id="ownerEmail" name="ownerEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Account Password:</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="main-btn">Create account</button>
                 </form>
-              </div>
+                </div>
             </div>
-          </div>
         </div>
-        `;
-    
-        appDiv.appendChild(vendorModal);
-    
-        const modal = new bootstrap.Modal(document.getElementById('vendorModal'));
-        modal.show();
+    `
+    container.appendChild(form)
+}
+
+async function handleAddVendor(event){
+    event.preventDefault()
+
+    const name = document.getElementById("vendorName").value
+    const type = document.getElementById("vendorType").value
+    const vendorEmail = document.getElementById("vendorEmail").value
+    const vendorPhone = document.getElementById("vendorPhone").value
+    const vendorSocialInput = document.getElementById("socialMedia").value
+    const vendorSocial = vendorSocialInput.trim() === "" ? null : vendorSocialInput.trim()
+    const ownerFirst = document.getElementById("ownerFirst").value
+    const ownerLast = document.getElementById("ownerLast").value
+    const ownerPhone = document.getElementById("ownerPhone").value
+    const ownerEmail = document.getElementById("ownerEmail").value
+    const password = document.getElementById("password").value
+
+    const newVendor = {
+        vendorEmail: vendorEmail,
+        vendorPhone: vendorPhone,
+        vendorSocial: vendorSocial,
+        vendorName: name,
+        ownerFirstName: ownerFirst,
+        ownerLastName: ownerLast,
+        ownerEmail: ownerEmail,
+        ownerPassword: password,
+        ownerPhone: ownerPhone,
+        type: type,
+        deleted: "n"
     }
+    
+    url = baseUrl + "Vendor"
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(newVendor),
+    })
+
+    if (response.ok) 
+    {
+        alert("Vendor account created successfully!")
+        handleOnLoad()
+    } 
+    else 
+    {
+        alert("Failed to create vendor account.")
+    }
+}

@@ -80,3 +80,8 @@ p, li, h5 {
     padding: 5px;
     border-radius: 5px;
 }
+
+#vendorContainer {
+    border: 3px solid rgb(5, 20, 100);
+    border-radius: 5px;
+}

@@ -535,13 +535,13 @@ async function vendorEventsTable(vendorID)
     }
 }
 
-// account creation methods
-function handleBecomeAVendor() {
-    const appDiv = document.getElementById("app");
-    appDiv.innerHTML = ""
-    AccountCreationNav()
-    AccountCreationHeader()
-    AccountCreationForm()
+// vendor home page methods
+function vendorPage(){
+    const app = document.getElementById("app");
+    app.innerHTML = ""; 
+
+    vendorPageDescription();
+    eventTable();
 }
 
 function AccountCreationNav()
@@ -1099,6 +1099,7 @@ async function handleOnApprove(vendorID) {
    await  handleOnLoad();
 }
 
+
 // data methods
 async function getData()
 {
@@ -1225,66 +1226,235 @@ async function getVendor(vendorID)
 function handleLogin()
 { 
     
-    const appDiv = document.getElementById("app"); 
+        const appDiv = document.getElementById("app"); 
+    
+        const loginModal = document.createElement("div");
+        loginModal.innerHTML = `
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
+                <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="login-form">
+                  <div class="mb-3">
+                    <label for="login-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="login-username" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="login-password" required>
+                  </div>
+                  <div id="login-output" class="text-danger mb-2"></div>
+                  <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        `;
+    
+        appDiv.appendChild(loginModal);
+    
+        const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+        modal.show();
+    
+        const loginForm = document.getElementById("login-form");
+        loginForm.addEventListener("submit", function (event) {
+            
+    
+            const username = document.getElementById("login-username").value.trim();
+            const password = document.getElementById("login-password").value.trim();
+    
+            
+            if (username === "admin" && password === "password") {
+                modal.hide(); 
+                handleOnAdmin(vendors); 
+                return;
+            }
+    
+        
+            const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
+    
+            if (matchingVendor && password === "mis321") {
+                modal.hide(); 
+                vendorPage(); 
+            } else {
+                document.getElementById("login-output").textContent = "Invalid username or password.";
+            }
+        });
+}
 
-    const loginModal = document.createElement("div");
-    loginModal.innerHTML = `
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
-            <h1 class="modal-title fs-5" id="loginModalLabel">Account Login</h1>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-            <form id="login-form">
-                <div class="mb-3">
-                <label for="login-username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="login-username" required>
-                </div>
-                <div class="mb-3">
-                <label for="login-password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="login-password" required>
-                </div>
-                <div id="login-output" class="text-danger mb-2"></div>
-                <button type="submit" class="btn btn-primary" id="main-btn">Login</button>
-            </form>
-            </div>
-        </div>
-        </div>
+function handleBecomeAVendor() {
+    const appDiv = document.getElementById("app");
+    appDiv.innerHTML = ""
+    AccountCreationNav()
+    AccountCreationHeader()
+    AccountCreationForm()
+}
+
+function AccountCreationNav()
+{
+    const appDiv = document.getElementById("app")
+    appDiv.innerHTML = ""
+    const navbar = document.createElement("nav")
+    navbar.className = "navbar sticky-top"
+    navbar.style.backgroundColor = "rgb(5,20,100)"
+    navbar.style.color = "white"
+    navbar.innerHTML = `
+    <div class="container-fluid">
+        <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
     </div>
-    `;
-
-    appDiv.appendChild(loginModal);
-
-    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-    modal.show();
-
-    const loginForm = document.getElementById("login-form");
-    loginForm.addEventListener("submit", function (event) {
-        
-
-        const username = document.getElementById("login-username").value.trim();
-        const password = document.getElementById("login-password").value.trim();
-
-        
-        if (username === "admin" && password === "password") {
-            modal.hide(); 
-            handleOnAdmin(vendors); 
-            return;
-        }
+    `
+    appDiv.appendChild(navbar)
 
     
-        const matchingVendor = vendors.find(v => v.ownerEmail === username && v.ownerPassword === password)
+}
 
-        if (matchingVendor) 
-        {
-            modal.hide(); 
-            vendorPage(matchingVendor); 
-        } 
-        else 
-        {
-            document.getElementById("login-output").textContent = "Invalid username or password.";
-        }
-    });
+function AccountCreationHeader()
+{
+    const appDiv = document.getElementById("app")
+    const container = document.createElement("div")
+    container.className = "container py-4"
+    container.id = "login-form-container"
+
+    const header = document.createElement("h2")
+    header.className = "text-center mb-4"
+    header.style.color = "rgb(5,20,100)"
+    header.innerText = "Thanks for choosing the TTFA! Create your vendor account below."
+
+    container.appendChild(header)
+    appDiv.appendChild(container)
+}
+
+function AccountCreationForm()
+{
+    const container = document.getElementById("login-form-container")
+    const form = document.createElement("div")
+    form.innerHTML = `
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow p-4">
+                <form onsubmit="handleAddVendor(event)">
+                    <div class="mb-3">
+                        <label for="vendorName" class="form-label">Vendor Name:</label>
+                        <input type="text" class="form-control" id="vendorName" name="vendorName" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorType" class="form-label">Goods Sold</label>
+                        <select class="form-select" id="vendorType" name="vendorType" required>
+                            <option value="" selected disabled hidden>Choose goods type</option>
+                            <option value="Groceries">Groceries</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Art">Art</option>
+                            <option value="Food">Food</option>
+                            <option value="Home Items">Home Items</option>
+                            <option value="Music">Music</option>
+                            <option value="Plants">Plants</option>
+                        </select>
+                    </div>
+                    <br>
+                    <div class="mb-3">
+                        <label for="vendorEmail" class="form-label">Vendor Email:</label>
+                        <input type="email" class="form-control" id="vendorEmail" name="vendorEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorPhone" class="form-label">Vendor Phone Number:</label>
+                        <input type="text" class="form-control" id="vendorPhone" name="VendorPhone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="socialMedia" class="form-label">Social Media (optional):</label>
+                        <div class="input-group">
+                            <span class="input-group-text">@</span>
+                            <input type="text" class="form-control" id="socialMedia" name="socialMedia">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                    <div class="col">
+                        <label for="ownerFirst" class="form-label">Owner First Name:</label>
+                        <input type="text" class="form-control" id="ownerFirst" name="ownerFirst">
+                    </div>
+                    <div class="col">
+                        <label for="ownerLast" class="form-label">Owner Last Name:</label>
+                        <input type="text" class="form-control" id="ownerLast" name="ownerLast">
+                    </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ownerPhone" class="form-label">Owner Phone:</label>
+                        <input type="text" class="form-control" id="ownerPhone" name="ownerPhone" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ownerEmail" class="form-label">Owner Email (Account Username):</label>
+                        <input type="email" class="form-control" id="ownerEmail" name="ownerEmail" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Account Password:</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="main-btn">Create account</button>
+                </form>
+                </div>
+            </div>
+        </div>
+    `
+    container.appendChild(form)
+}
+
+async function handleAddVendor(event){
+    event.preventDefault()
+
+    const name = document.getElementById("vendorName").value
+    const type = document.getElementById("vendorType").value
+    const vendorEmail = document.getElementById("vendorEmail").value
+    const vendorPhone = document.getElementById("vendorPhone").value
+    const vendorSocialInput = document.getElementById("socialMedia").value
+    const vendorSocial = vendorSocialInput.trim() === "" ? null : vendorSocialInput.trim()
+    const ownerFirst = document.getElementById("ownerFirst").value
+    const ownerLast = document.getElementById("ownerLast").value
+    const ownerPhone = document.getElementById("ownerPhone").value
+    const ownerEmail = document.getElementById("ownerEmail").value
+    const password = document.getElementById("password").value
+
+    const newVendor = {
+        vendorEmail: vendorEmail,
+        vendorPhone: vendorPhone,
+        vendorSocial: vendorSocial,
+        vendorName: name,
+        ownerFirstName: ownerFirst,
+        ownerLastName: ownerLast,
+        ownerEmail: ownerEmail,
+        ownerPassword: password,
+        ownerPhone: ownerPhone,
+        type: type,
+        deleted: "n"
+    }
+    
+    url = baseUrl + "Vendor"
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(newVendor),
+    })
+
+    if (response.ok) 
+    {
+        alert("Vendor account created successfully!")
+        handleOnLoad()
+    } 
+    else 
+    {
+        alert("Failed to create vendor account.")
+    }
 }

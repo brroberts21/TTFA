@@ -993,7 +993,7 @@ async function handleAddEvent(event){
     } 
     else 
     {
-        alert("Failed to create events.")
+        alert("Failed to create event.")
     }
 }
 // data methods

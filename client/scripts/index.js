@@ -535,342 +535,7 @@ async function vendorEventsTable(vendorID)
     }
 }
 
-// vendor home page methods
-function vendorPage(){
-    const app = document.getElementById("app");
-    app.innerHTML = ""; 
-
-    vendorPageDescription();
-    eventTable();
-}
-
-function vendorPageDescription(){
-    const app = document.getElementById("app"); 
-    app.innerHTML = "";  
-
-    const table = document.createElement("table");
-    table.className = "table table-bordered";
-
-    const thead = document.createElement("thead");
-    thead.innerHTML =  `
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Business</th>
-            <th>Email</th>
-            <th>Status</th>
-        </tr>`;  
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-
-    let sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
-
-    sortedEvents.forEach((event) => {
-        const row = document.createElement("tr");
-        row.innerHTML =  `
-            <td>${event.name}</td>
-            <td>${event.eventDescription }</td>
-            <td>${vendor.vendorName}</td>
-            <td>${vendor.email}</td>
-          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
-           
-        `;
-        tbody.appendChild(row);
-    });
-
-
-    table.appendChild(tbody);
-    app.appendChild(table); 
-
-
-
-}
-   
-
-function eventTable(events){
-   
-    console.log(sortedEvents)
-    const appDiv = document.getElementById("app")
-
-    const space = document.createElement("br")
-    appDiv.appendChild(space)
-
-    const container = document.createElement("div")
-    container.className = "container"
-    const table = document.createElement("table")
-    table.className = "table table-striped table-bordered table-primary table-hover"
-    table.style.tableLayout = "auto";
-    table.style.width = "auto";
-    table.style.whiteSpace = "nowrap";
-    const thead = document.createElement("thead")
-    thead.innerHTML = "<tr><th></th><th>Event Name</th><th></tr>"
-    table.appendChild(thead)
-
-    const tbody = document.createElement("tbody")
-    sortedEvents.forEach((event) => {
-        
-        const row = document.createElement("tr")
-        row.innerHTML = `
-            <td>
-                <button class="btn btn-primary" onclick="handleOnRegister(${event.id})">
-                    ${event.register ? 'Unregister' : 'Register'}
-                </button>
-            </td>
-            <td>${event.eventName}</td>
-        `
-        tbody.appendChild(row)
-    })
-
-    table.appendChild(tbody)
-    container.appendChild(table)
-    appDiv.appendChild(container)
-}
-
-// admin home page methods
-async function handleOnAdmin(vendors) {
-    const app = document.getElementById("app"); 
-    app.innerHTML = "";  
-
-    const table = document.createElement("table");
-    table.className = "table table-bordered";
-
-    const thead = document.createElement("thead");
-    thead.innerHTML =  `
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Business</th>
-            <th>Email</th>
-            <th>Status</th>
-        </tr>`;  
-    table.appendChild(thead);
-
-    const tbody = document.createElement("tbody");
-
-    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName));
-
-    sortedVendors.forEach((vendor) => {
-        const row = document.createElement("tr");
-        row.innerHTML =  `
-            <td>${vendor.ownerFirstName} ${vendor.ownerLastName}</td>
-            <td>${vendor.phone}</td>
-            <td>${vendor.vendorName}</td>
-            <td>${vendor.email}</td>
-          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
-           
-        `;
-        tbody.appendChild(row);
-    });
-
-    table.appendChild(tbody);
-    app.appendChild(table); 
-} 
-   
-async function handleOnApprove(vendorID) {
-    const response = await fetch(url + "/" + vendorID,{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-
-   await  handleOnLoad();
-}
-
-
-// data methods
-async function getData()
-{
-    await getAllAdmin()
-    await getAllApprovals()
-    await getAllBooths()
-    await getAllDeletions()
-    await getAllEvents()
-    await getAllManagers()
-    await getAllUsers()
-    await getAllVendors()
-}
-// admin data methods
-async function getAllAdmin()
-{
-    url = baseUrl + "Admin"
-    let response = await fetch(url)
-    admins = await response.json()
-    console.log(admins)
-}
-
-// approval data methods
-async function getAllApprovals()
-{
-    url = baseUrl + "Approves"
-    let response = await fetch(url)
-    approvals = await response.json()
-    console.log(approvals)
-}
-
-// booth data methods
-async function getAllBooths()
-{
-    url = baseUrl + "Booth"
-    let response = await fetch(url)
-    booths = await response.json()
-    console.log(booths)
-}
-
-// deletion data methods
-async function getAllDeletions()
-{
-    url = baseUrl + "Deletes"
-    let response = await fetch(url)
-    deletions = await response.json()
-    console.log(deletions)
-}
-
-// event data methods
-async function getAllEvents()
-{
-    url = baseUrl + "Event"
-    let response = await fetch(url)
-    events = await response.json()
-    console.log(events)
-}
-
-async function getAllVendorEvents(vendorID)
-{
-    url = baseUrl + `Event/vendor/${vendorID}`
-    let response = await fetch(url)
-    const data = await response.json()
-    return data
-}
-
-// manager data methods
-async function getAllManagers()
-{
-    url = baseUrl + "Manages"
-    let response = await fetch(url)
-    managers = await response.json()
-    console.log(managers)
-}
-
-// users data methods
-async function getAllUsers()
-{
-    url = baseUrl + "Uses"
-    let response = await fetch(url)
-    booths = await response.json()
-    console.log(booths)
-}
-
-async function getVendorCount(eventID)
-{
-    url = baseUrl + `Uses/${eventID}`
-    let response = await fetch(url)
-    count = await response.json()
-    return count
-}
-
-async function getBoothNumber(eventID, vendorID)
-{
-    url = baseUrl + `Uses/${eventID}/${vendorID}`
-    let response = await fetch(url)
-    booth = await response.json()
-    return booth
-}
-
-
-// vendor data methods
-async function getAllVendors()
-{
-    url = baseUrl + "Vendor"
-    let response = await fetch(url)
-    vendors = await response.json()
-    console.log(vendors)
-}
-
-async function getVendor(vendorID)
-{
-    url = baseUrl + `Vendor/${vendorID}`
-    let response = await fetch(url)
-    return await response.json()
-}
-
-async function handleOnRegister(eventID) {
-
-
-    const response = await fetch(url + "/" + eventID,{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
-
-   await  handleOnLoad();
-}
-
-function handleLogin(vendor){ 
-    
-        const appDiv = document.getElementById("app"); 
-    
-        const loginModal = document.createElement("div");
-        loginModal.innerHTML = `
-        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
-                <h1 class="modal-title fs-5" id="loginModalLabel">User Login</h1>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <form id="login-form">
-                  <div class="mb-3">
-                    <label for="login-username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="login-username" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="login-password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="login-password" required>
-                  </div>
-                  <div id="login-output" class="text-danger mb-2"></div>
-                  <button type="submit" class="btn btn-primary">Login</button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        `;
-    
-        appDiv.appendChild(loginModal);
-    
-        const modal = new bootstrap.Modal(document.getElementById('loginModal'));
-        modal.show();
-    
-        const loginForm = document.getElementById("login-form");
-        loginForm.addEventListener("submit", function (event) {
-            
-    
-            const username = document.getElementById("login-username").value.trim();
-            const password = document.getElementById("login-password").value.trim();
-    
-            
-            if (username === "admin" && password === "password") {
-                modal.hide(); 
-                handleOnAdmin(vendors); 
-                return;
-            }
-    
-        
-            const matchingVendor = vendors.find(v => v.vendorName.toLowerCase() === username.toLowerCase());
-    
-            if (matchingVendor && password === "mis321") {
-                modal.hide(); 
-                vendorPage(); 
-            } else {
-                document.getElementById("login-output").textContent = "Invalid username or password.";
-            }
-        });
-}
-
+// account creation methods
 function handleBecomeAVendor() {
     const appDiv = document.getElementById("app");
     appDiv.innerHTML = ""
@@ -1023,7 +688,7 @@ async function handleAddVendor(event){
         deleted: "n"
     }
     
-    url = baseUrl + "Vendor"
+    const url = baseUrl + "Vendor"
     const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -1041,4 +706,585 @@ async function handleAddVendor(event){
     {
         alert("Failed to create vendor account.")
     }
+}
+
+// vendor home page methods
+function vendorPage(vendor)
+{
+    const app = document.getElementById("app");
+    app.innerHTML = ""; 
+
+    vendorPageNavbar(vendor)
+    vendorPageHeader(vendor)
+    vendorPageContainers()
+    notAttendingTable(vendor)
+    attendingTable(vendor)
+}
+
+function vendorPageNavbar(vendor)
+{
+    const appDiv = document.getElementById("app")
+    appDiv.innerHTML = ""
+    const navbar = document.createElement("nav")
+    navbar.className = "navbar sticky-top";
+    navbar.style.backgroundColor = "rgb(5,20,100)";
+    navbar.style.color = "white";
+    navbar.innerHTML = `
+    <div class="container-fluid">
+        <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
+        <div class="ms-auto d-flex gap-2">
+            <button type="button" class="btn btn-primary" id="main-btn" data-bs-toggle="modal" data-bs-target="#accountModal">Edit Account</button>
+            <button type="button" class="btn btn-primary" id="main-btn" onclick="handleOnLoad()">Sign Out</button>
+        </div>
+    </div>
+    `
+    appDiv.appendChild(navbar)
+    vendorAccountModal(vendor)
+}
+
+function vendorPageHeader(vendor)
+{
+    const appDiv = document.getElementById("app")
+    const container = document.createElement("div")
+    container.className = "container-fluid"
+
+    const header = document.createElement("h2")
+    header.textContent = `Welcome to the vendor portal, ${vendor.ownerFirstName}!`
+    header.style.color = "rgb(5,20,100)"
+    container.appendChild(header)
+
+    const status = document.createElement("h5")
+    status.textContent = `Vendor Status: Approved`
+    status.style.color = "rgb(5,20,100)"
+    container.appendChild(status)
+
+    appDiv.appendChild(container)
+}
+
+function vendorPageContainers()
+{
+    const appDiv = document.getElementById("app")
+    const space = document.createElement("br")
+    appDiv.appendChild(space)
+    const containers = document.createElement("div")
+    containers.className = "container text-center"
+    containers.innerHTML = `
+    <div class="row" id="vendorContainer">
+            <div class="col">
+                <h3 style="color: rgb(5,20,100)">Upcoming Events</h3>
+                <p style="color: rgb(5,20,100)">
+                    Below you will see events that you are not attending. 
+                    If you want to attend the event, just click "Sign Up" and find a booth!
+                </p>
+                <div id="notAttending">
+
+                </div>
+            </div>
+            <div class="col">
+                <h3 style="color: rgb(5,20,100)">Your Events</h3>
+                <p style="color: rgb(5,20,100)">
+                    Here you will see all the events your are attending.
+                    If for some reason you can no longer attend an event, just click "Cancel" to cancel your reservation.
+                </p>
+                <div id="attending">
+
+                </div>
+            </div>
+        </div>
+    `
+    appDiv.appendChild(containers)
+}
+
+async function attendingTable(vendor)
+{
+    vendorID = vendor.id
+    vendorEvents = await getAllVendorEvents(vendorID)
+    let sortedEvents = vendorEvents.sort((a, b) => new Date(a.date) - new Date(b.date))
+    
+    const tableDiv = document.getElementById("attending")
+    
+    if(vendorEvents.length > 0)
+    {
+        const table = document.createElement("table")
+        table.id = "vendor-table-modal"
+        table.className = "table table-bordered table-hover"
+        table.style.tableLayout = "auto";
+        table.style.width = "auto";
+        table.style.whiteSpace = "nowrap";
+        const thead = document.createElement("thead")
+        thead.innerHTML = "<th>Event Name</th><th>Event Date</th><th>Start Time</th><th>End Time</th><th>Booth Number</th><th></th>"
+        table.appendChild(thead)
+
+        const tbody = document.createElement("tbody")
+        sortedEvents.forEach((event, index) => {
+            const row = document.createElement("tr")
+            row.innerHTML = `
+                <td>${event.name}</td>
+                <td>${new Date(event.date).toLocaleDateString()}</td>
+                <td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td class="booth-number-entry">Loading...</td>
+                <td><button class="btn btn-danger">Cancel</button></td>
+                `
+                
+            tbody.appendChild(row)
+
+            const boothCell = row.querySelector(".booth-number-entry")
+            
+            getBoothNumber(event.id, vendorID)
+                .then((boothNumber) => {
+                    boothCell.textContent = boothNumber || "N/A"
+                })
+                .catch(() => {
+                    boothCell.textContent = "Error"
+                })
+        })
+
+        table.appendChild(tbody)
+        tableDiv.appendChild(table)
+    }
+    else
+    {
+        tableDiv.innerHTML = `<p>${vendor.vendorName} is currently not scheduled for any events.</p>`
+    }
+}
+
+async function notAttendingTable(vendor)
+{
+    vendorID = vendor.id
+    skips = await getSkippedEvents(vendorID)
+    let sortedEvents = skips.sort((a, b) => new Date(a.date) - new Date(b.date))
+    
+    const tableDiv = document.getElementById("notAttending")
+    
+    if(skips.length > 0)
+    {
+        const table = document.createElement("table")
+        table.id = "vendor-table-modal"
+        table.className = "table table-bordered table-hover"
+        table.style.tableLayout = "auto";
+        table.style.width = "auto";
+        table.style.whiteSpace = "nowrap";
+        const thead = document.createElement("thead")
+        thead.innerHTML = "<th>Event Name</th><th>Event Date</th><th>Start Time</th><th>End Time</th><th></th>"
+        table.appendChild(thead)
+
+        const tbody = document.createElement("tbody")
+        sortedEvents.forEach((event, index) => {
+            const row = document.createElement("tr")
+            row.innerHTML = `
+                <td>${event.name}</td>
+                <td>${new Date(event.date).toLocaleDateString()}</td>
+                <td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td><button class="btn btn-primary" id="main-btn">Sign Up</button></td>
+                `
+            tbody.appendChild(row)
+        })
+
+        table.appendChild(tbody)
+        tableDiv.appendChild(table)
+    }
+    else
+    {
+        tableDiv.innerHTML = `<p>You're currently scheduled for every event.</p>`
+    }
+}
+
+function vendorAccountModal(vendor)
+{
+    const appDiv = document.getElementById("app")
+
+    const oldModal = document.getElementById("accountModal")
+    if (oldModal) 
+    {
+        oldModal.remove()
+    }
+
+    const vendorID = vendor.id
+
+    const modal = document.createElement("div")
+    modal.innerHTML =`
+    <div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: rgb(5, 20, 100); color: white;">
+                    <h1 class="modal-title fs-5" id="accountLabel">Account Details</h1>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row justify-content-center">
+                        <div class="col-md-10">
+                            <form onsubmit="handleSaveVendor(event, ${vendorID})">
+                                <div class="mb-3">
+                                    <label for="vendorNameE" class="form-label">Vendor Name:</label>
+                                    <input type="text" class="form-control" id="vendorNameE" name="vendorName" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="vendorTypeE" class="form-label">Goods Sold</label>
+                                    <select class="form-select" id="vendorTypeE" name="vendorType" required>
+                                        <option value="" selected disabled hidden>Choose goods type</option>
+                                        <option value="Groceries">Groceries</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Art">Art</option>
+                                        <option value="Food">Food</option>
+                                        <option value="Home Items">Home Items</option>
+                                        <option value="Music">Music</option>
+                                        <option value="Plants">Plants</option>
+                                    </select>
+                                </div>
+                                <br>
+                                <div class="mb-3">
+                                    <label for="vendorEmailE" class="form-label">Vendor Email:</label>
+                                    <input type="email" class="form-control" id="vendorEmailE" name="vendorEmail" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="vendorPhoneE" class="form-label">Vendor Phone Number:</label>
+                                    <input type="text" class="form-control" id="vendorPhoneE" name="VendorPhone" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="socialMediaE" class="form-label">Social Media (optional):</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">@</span>
+                                        <input type="text" class="form-control" id="socialMediaE" name="socialMedia">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                <div class="col">
+                                    <label for="ownerFirstE" class="form-label">Owner First Name:</label>
+                                    <input type="text" class="form-control" id="ownerFirstE" name="ownerFirst">
+                                </div>
+                                <div class="col">
+                                    <label for="ownerLastE" class="form-label">Owner Last Name:</label>
+                                    <input type="text" class="form-control" id="ownerLastE" name="ownerLast">
+                                </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="ownerPhoneE" class="form-label">Owner Phone:</label>
+                                    <input type="text" class="form-control" id="ownerPhoneE" name="ownerPhone" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="ownerEmailE" class="form-label">Owner Email (Account Username):</label>
+                                    <input type="email" class="form-control" id="ownerEmailE" name="ownerEmail" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="passwordE" class="form-label">Account Password:</label>
+                                    <input type="password" class="form-control" id="passwordE" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-success w-100">Save</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `
+    appDiv.appendChild(modal)
+}
+
+async function handleSaveVendor(event, vendorID)
+{
+    event.preventDefault()
+
+    const name = document.getElementById("vendorNameE").value
+    const type = document.getElementById("vendorTypeE").value
+    const vendorEmail = document.getElementById("vendorEmailE").value
+    const vendorPhone = document.getElementById("vendorPhoneE").value
+    const vendorSocialInput = document.getElementById("socialMediaE").value
+    const vendorSocial = vendorSocialInput.trim() === "" ? null : vendorSocialInput.trim()
+    const ownerFirst = document.getElementById("ownerFirstE").value
+    const ownerLast = document.getElementById("ownerLastE").value
+    const ownerPhone = document.getElementById("ownerPhoneE").value
+    const ownerEmail = document.getElementById("ownerEmailE").value
+    const password = document.getElementById("passwordE").value
+
+    const newVendor = {
+        id: vendorID,
+        vendorEmail: vendorEmail,
+        vendorPhone: vendorPhone,
+        vendorSocial: vendorSocial,
+        vendorName: name,
+        ownerFirstName: ownerFirst,
+        ownerLastName: ownerLast,
+        ownerEmail: ownerEmail,
+        ownerPassword: password,
+        ownerPhone: ownerPhone,
+        type: type,
+        deleted: "n"
+    }
+    
+    const url = baseUrl + "Vendor" + "/" + vendorID
+    const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        }, 
+        body: JSON.stringify(newVendor),
+    })
+
+    if (response.ok) 
+    {
+        alert("Vendor account updated successfully!")
+        const modalElement = document.getElementById('accountModal')
+        const modal = bootstrap.Modal.getInstance(modalElement)
+        if (modal) 
+        {
+            modal.hide()
+        }
+        vendorPage(newVendor)
+    } 
+    else 
+    {
+        alert("Failed to update vendor account.")
+    }
+}
+
+// admin home page methods
+async function handleOnAdmin(vendors) {
+    const app = document.getElementById("app"); 
+    app.innerHTML = "";  
+
+    const table = document.createElement("table");
+    table.className = "table table-bordered";
+
+    const thead = document.createElement("thead");
+    thead.innerHTML =  `
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Business</th>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>`;  
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName));
+
+    sortedVendors.forEach((vendor) => {
+        const row = document.createElement("tr");
+        row.innerHTML =  `
+            <td>${vendor.ownerFirstName} ${vendor.ownerLastName}</td>
+            <td>${vendor.phone}</td>
+            <td>${vendor.vendorName}</td>
+            <td>${vendor.email}</td>
+          <td><button onclick="handleOnApprove(${vendor.id})">${vendor.approvev? 'Deny ' : 'Approve'}</button></td>
+           
+        `;
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    app.appendChild(table); 
+} 
+   
+async function handleOnApprove(vendorID) {
+    const response = await fetch(url + "/" + vendorID,{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+   await  handleOnLoad();
+}
+
+// data methods
+async function getData()
+{
+    await getAllAdmin()
+    await getAllApprovals()
+    await getAllBooths()
+    await getAllDeletions()
+    await getAllEvents()
+    await getAllManagers()
+    await getAllUsers()
+    await getAllVendors()
+}
+// admin data methods
+async function getAllAdmin()
+{
+    url = baseUrl + "Admin"
+    let response = await fetch(url)
+    admins = await response.json()
+    console.log(admins)
+}
+
+// approval data methods
+async function getAllApprovals()
+{
+    url = baseUrl + "Approves"
+    let response = await fetch(url)
+    approvals = await response.json()
+    console.log(approvals)
+}
+
+// booth data methods
+async function getAllBooths()
+{
+    url = baseUrl + "Booth"
+    let response = await fetch(url)
+    booths = await response.json()
+    console.log(booths)
+}
+
+// deletion data methods
+async function getAllDeletions()
+{
+    url = baseUrl + "Deletes"
+    let response = await fetch(url)
+    deletions = await response.json()
+    console.log(deletions)
+}
+
+// event data methods
+async function getAllEvents()
+{
+    url = baseUrl + "Event"
+    let response = await fetch(url)
+    events = await response.json()
+    console.log(events)
+}
+
+async function getAllVendorEvents(vendorID)
+{
+    url = baseUrl + `Event/vendor/${vendorID}`
+    let response = await fetch(url)
+    const data = await response.json()
+    return data
+}
+
+async function getSkippedEvents(vendorID)
+{
+    url = baseUrl + `Event/skip/${vendorID}`
+    let response = await fetch(url)
+    const data = await response.json()
+    return data
+}
+
+// manager data methods
+async function getAllManagers()
+{
+    url = baseUrl + "Manages"
+    let response = await fetch(url)
+    managers = await response.json()
+    console.log(managers)
+}
+
+// users data methods
+async function getAllUsers()
+{
+    url = baseUrl + "Uses"
+    let response = await fetch(url)
+    booths = await response.json()
+    console.log(booths)
+}
+
+async function getVendorCount(eventID)
+{
+    url = baseUrl + `Uses/${eventID}`
+    let response = await fetch(url)
+    count = await response.json()
+    return count
+}
+
+async function getBoothNumber(eventID, vendorID)
+{
+    url = baseUrl + `Uses/${eventID}/${vendorID}`
+    let response = await fetch(url)
+    booth = await response.json()
+    return booth
+}
+
+// vendor data methods
+async function getAllVendors()
+{
+    url = baseUrl + "Vendor"
+    let response = await fetch(url)
+    vendors = await response.json()
+    console.log(vendors)
+}
+
+async function getVendor(vendorID)
+{
+    url = baseUrl + `Vendor/${vendorID}`
+    let response = await fetch(url)
+    return await response.json()
+}
+
+function handleLogin()
+{ 
+    
+    const appDiv = document.getElementById("app"); 
+
+    const loginModal = document.createElement("div");
+    loginModal.innerHTML = `
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: rgb(5,20,100); color: white;">
+            <h1 class="modal-title fs-5" id="loginModalLabel">Account Login</h1>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            <form id="login-form">
+                <div class="mb-3">
+                <label for="login-username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="login-username" required>
+                </div>
+                <div class="mb-3">
+                <label for="login-password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="login-password" required>
+                </div>
+                <div id="login-output" class="text-danger mb-2"></div>
+                <button type="submit" class="btn btn-primary" id="main-btn">Login</button>
+            </form>
+            </div>
+        </div>
+        </div>
+    </div>
+    `;
+
+    appDiv.appendChild(loginModal);
+
+    const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+    modal.show();
+
+    const loginForm = document.getElementById("login-form");
+    loginForm.addEventListener("submit", function (event) {
+        
+
+        const username = document.getElementById("login-username").value.trim();
+        const password = document.getElementById("login-password").value.trim();
+
+        
+        if (username === "admin" && password === "password") {
+            modal.hide(); 
+            handleOnAdmin(vendors); 
+            return;
+        }
+
+    
+        const matchingVendor = vendors.find(v => v.ownerEmail === username && v.ownerPassword === password)
+
+        if (matchingVendor) 
+        {
+            modal.hide(); 
+            vendorPage(matchingVendor); 
+        } 
+        else 
+        {
+            document.getElementById("login-output").textContent = "Invalid username or password.";
+        }
+    });
 }

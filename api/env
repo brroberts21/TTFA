@@ -1,0 +1,13 @@
+# Database settings
+DATABASE_URL="Server=ijj1btjwrd3b7932.cbetxkdyhwsb.us-east-1.rds.amazonaws.com;User ID=sb665amfr0pynuyz;Password=wqayxcinhauzfivu;Database=o8gync8ricmopt1y"
+
+# API keys
+API_KEY=your-api-key-here
+ANOTHER_API_SECRET=your-other-secret-here
+
+# App settings
+APP_ENV=development
+APP_PORT=5000
+
+# Feature flags (optional)
+ENABLE_FEATURE_X=false

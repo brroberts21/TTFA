@@ -19,6 +19,7 @@ namespace api.Models
 
         public string PhoneNumber { get; set; }
 
-        public string Deleted {get; set;}
+        public string Deleted { get; set; }
+        
     }
 }

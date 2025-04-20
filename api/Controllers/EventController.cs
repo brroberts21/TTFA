@@ -26,13 +26,20 @@ namespace MyApp.Namespace
             return singleEvent;
         }
 
-        // GET api/<UsesController>/vendor/5
+        // GET api/<Event>/vendor/5
         [HttpGet("vendor/{vendorID}")]
         public async Task<List<Event>> GetVendorEvents(int vendorID)
         {
             Database db = new();
             return await db.GetVendorEvents(vendorID);
         }
+
+        [HttpGet("skip/{vendorID}")]
+        public async Task<List<Event>> GetSkippedEvents(int vendorID)
+        {
+            Database db = new();
+            return await db.GetSkippedEvents(vendorID);
+        } 
 
         // POST api/<EventController>
         [HttpPost]

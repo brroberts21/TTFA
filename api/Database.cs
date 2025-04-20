@@ -1,13 +1,19 @@
 using System.Globalization;
 using api.Models;
 using MySqlConnector;
-
 using DotNetEnv;
+
 namespace api
 {
     public class Database
     {
-        private string connectionStringOriginal = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+        private readonly string connectionString;
+        public Database()
+        {
+            Env.Load();
+            connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+        }
+        
         public async Task<List<Vendor>> GetAllVendorsAsync()
         {
             DotNetEnv.Env.Load();
@@ -279,6 +285,44 @@ namespace api
                     Date = reader.GetDateTime(4),
                     StartTime = new DateTime(1, 1, 1, reader.GetTimeSpan(5).Hours, reader.GetTimeSpan(5).Minutes, reader.GetTimeSpan(5).Seconds),
                     EndTime = new DateTime(1, 1, 1, reader.GetTimeSpan(6).Hours, reader.GetTimeSpan(6).Minutes, reader.GetTimeSpan(6).Seconds),
+                    Deleted = "n"
+                });
+            }
+            return events;
+        }
+
+        public async Task<List<Event>> GetSkippedEvents(int vendorID)
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Event> events = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+                select e.event_id, e.event_name, e.event_date, e.event_start_time, e.event_end_time
+                from events e
+                where e.event_id not in (
+                    select u.event_id
+                    from uses u
+                    where u.vendor_id = 1
+                    and u.deleted = 'n'
+                )
+                order by e.event_id;", connection);
+
+            command.Parameters.AddWithValue("@vendor_id", vendorID);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while(await reader.ReadAsync())
+            {
+                events.Add(new Event(){
+                    ID = reader.GetInt32(0),
+                    Name = reader.GetString(1),
+                    Description = "",
+                    Date = reader.GetDateTime(2),
+                    StartTime = new DateTime(1, 1, 1, reader.GetTimeSpan(3).Hours, reader.GetTimeSpan(3).Minutes, reader.GetTimeSpan(3).Seconds),
+                    EndTime = new DateTime(1, 1, 1, reader.GetTimeSpan(4).Hours, reader.GetTimeSpan(4).Minutes, reader.GetTimeSpan(4).Seconds),
                     Deleted = "n"
                 });
             }

@@ -1,0 +1,33 @@
+# Ignore build outputs
+api/bin/
+api/obj/
+artifacts/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore Visual Studio working folders
+.vs/
+
+# Ignore .NET-specific files
+project.lock.json
+project.fragment.lock.json
+
+# Ignore packages folder if not using PackageReference
+packages/
+
+# Ignore Rider and VS Code settings
+.idea/
+.vscode/
+
+# Ignore other OS-generated files
+*.log
+*.DS_Store
+Thumbs.db
+
+# Ignore environment files
+.env
+.env.*

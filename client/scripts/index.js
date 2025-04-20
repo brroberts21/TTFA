@@ -1358,5 +1358,3 @@ async function handleAddVendor(event){
     {
         alert("Failed to create vendor account.")
     }
-}
-

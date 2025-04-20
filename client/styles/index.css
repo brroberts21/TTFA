@@ -82,6 +82,7 @@ p, li, h5 {
 }
 
 #vendorContainer {
-    border: 3px solid rgb(5, 20, 100);
+    border-top: solid rgb(5, 20, 100);
+    border-bottom: solid rgb(5, 20, 100);
     border-radius: 5px;
 }

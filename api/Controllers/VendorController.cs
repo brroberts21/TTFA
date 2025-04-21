@@ -19,6 +19,13 @@ namespace MyApp.Namespace
             return await db.GetAllVendorsAsync();
         }
 
+        [HttpGet("pending")]
+        public async Task<List<Vendor>> GetAllPendingVendorsAsync()
+        {
+            Database db = new();
+            return await db.GetAllPendingVendorsAsync();
+        }
+
         // GET api/<VendorController>/5
         [HttpGet("{id}")]
         public async Task<Vendor> GetVendorAsync(int id)
@@ -31,10 +38,19 @@ namespace MyApp.Namespace
         // make sure vendor name and owner email are unique when testing
         // POST api/<VendorController>
         [HttpPost]
-        public async Task PostVendorAsync([FromBody] Vendor vendor)
+        public async Task<Vendor> PostVendorAsync([FromBody] Vendor vendor)
         {
             Database db = new();
-            await db.InsertVendorAsync(vendor);
+            int newVendorID = await db.InsertVendorAsync(vendor);
+
+            Pending pending = new Pending
+            {
+                VendorID = newVendorID,
+                deleted = "n"
+            };
+            await db.InsertPendingVendor(pending);
+
+            return vendor;
         }
         
         // make sure vendor name and owner email are unique when testing

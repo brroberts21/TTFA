@@ -30,6 +30,11 @@ p, li, h5 {
     color: white;
     text-align: center;
 }
+#admin-vendor-table thead th {
+    background-color: rgb(5, 20, 100);
+    color: white;
+    text-align: center;
+}
 
 #vendor-table-main tbody tr, td {
     color: rgb(5, 20, 100);
@@ -81,8 +86,34 @@ p, li, h5 {
     border-radius: 5px;
 }
 
-#vendorContainer {
+#portalContainer {
     border-top: solid rgb(5, 20, 100);
-    border-bottom: solid rgb(5, 20, 100);
+    /* border-bottom: solid rgb(5, 20, 100); */
     border-radius: 5px;
+}
+
+.btn-outline-danger {
+    color: rgb(75,156,211);
+    border-color: rgb(75,156,211);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger.active {
+    background-color: rgb(55, 126, 181);
+    color: white;
+    border-color: rgb(55, 126, 181);
+}
+
+.btn-check:checked + .btn-outline-danger {
+    background-color: rgb(75,156,211);
+    color: white;
+    border-color: rgb(75,156,211);
+}
+
+.btn-check:not(:checked) + .btn-outline-danger {
+    background-color: transparent;
+    color: rgb(75,156,211);
+    border-color: rgb(75,156,211);
 }

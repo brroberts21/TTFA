@@ -24,7 +24,51 @@ namespace api
             using var connection = new MySqlConnection(cs);
             await connection.OpenAsync();
 
-            using var command = new MySqlCommand("SELECT * FROM o8gync8ricmopt1y.vendors where deleted = 'n';", connection);
+            using var command = new MySqlCommand(@"
+            SELECT * FROM o8gync8ricmopt1y.vendors
+            where deleted = 'n' and vendor_id in (
+                select vendor_id from approves
+            );
+            ", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                vendors.Add(new Vendor()
+                {
+                    ID = reader.GetInt32(0),
+                    VendorName = reader.GetString(1),
+                    VendorEmail = reader.GetString(2),
+                    VendorPhone = reader.GetString(3),
+                    VendorSocial = reader.IsDBNull(reader.GetOrdinal("vendor_social")) ? null : reader.GetString("vendor_social"),
+                    OwnerFirstName = reader.GetString(5),
+                    OwnerLastName = reader.GetString(6),
+                    OwnerEmail = reader.GetString(7),
+                    OwnerPassword = reader.GetString(8),
+                    OwnerPhone = reader.GetString(9),
+                    Type = reader.GetString(10),
+                    Deleted = reader.GetString(11)
+                });
+            }
+
+            return vendors;
+        }
+
+        public async Task<List<Vendor>> GetAllPendingVendorsAsync()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Vendor> vendors = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            SELECT * FROM vendors
+            where vendor_id in (
+                select vendor_id from pending
+                where deleted = 'n'
+            );", connection);
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -90,42 +134,39 @@ namespace api
         // when testing this method in swagger
         // ensure that for each entry, the vendor name is unique from all other vendor names and the owner email is unique from all other vendor names
         // if there is another entry containing the same vendor name or owner email, the data entry will not work
-        public async Task InsertVendorAsync(Vendor vendor)
+        public async Task<int> InsertVendorAsync(Vendor vendor)
         {
             DotNetEnv.Env.Load();
             string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
-            try
-            {
-                using var connection = new MySqlConnection(cs);
-                await connection.OpenAsync();
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
 
-                string sql = $@"
-                insert into o8gync8ricmopt1y.vendors 
-                (vendor_name, vendor_email, vendor_phone, vendor_social, owner_first_name, owner_last_name, owner_email, owner_password, owner_phone, vendor_type, deleted) 
-                values 
-                (@vendor_name, @vendor_email, @vendor_phone, @vendor_social, @owner_first_name, @owner_last_name, @owner_email, @owner_password, @owner_phone, @vendor_type, @deleted);";
+            string sql = $@"
+            insert into o8gync8ricmopt1y.vendors 
+            (vendor_name, vendor_email, vendor_phone, vendor_social, owner_first_name, owner_last_name, owner_email, owner_password, owner_phone, vendor_type, deleted) 
+            values 
+            (@vendor_name, @vendor_email, @vendor_phone, @vendor_social, @owner_first_name, @owner_last_name, @owner_email, @owner_password, @owner_phone, @vendor_type, @deleted);";
 
-                using var command = new MySqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@vendor_name", vendor.VendorName);
-                command.Parameters.AddWithValue("@vendor_email", vendor.VendorEmail);
-                command.Parameters.AddWithValue("@vendor_phone", vendor.VendorPhone);
-                command.Parameters.AddWithValue("@vendor_social", vendor.VendorSocial);
-                command.Parameters.AddWithValue("@owner_first_name", vendor.OwnerFirstName);
-                command.Parameters.AddWithValue("@owner_last_name", vendor.OwnerLastName);
-                command.Parameters.AddWithValue("@owner_email", vendor.OwnerEmail);
-                command.Parameters.AddWithValue("@owner_password", vendor.OwnerPassword);
-                command.Parameters.AddWithValue("@owner_phone", vendor.OwnerPhone);
-                command.Parameters.AddWithValue("@vendor_type", vendor.Type);
-                command.Parameters.AddWithValue("@deleted", "n");
-                command.Prepare();
+            using var command = new MySqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@vendor_name", vendor.VendorName);
+            command.Parameters.AddWithValue("@vendor_email", vendor.VendorEmail);
+            command.Parameters.AddWithValue("@vendor_phone", vendor.VendorPhone);
+            command.Parameters.AddWithValue("@vendor_social", vendor.VendorSocial);
+            command.Parameters.AddWithValue("@owner_first_name", vendor.OwnerFirstName);
+            command.Parameters.AddWithValue("@owner_last_name", vendor.OwnerLastName);
+            command.Parameters.AddWithValue("@owner_email", vendor.OwnerEmail);
+            command.Parameters.AddWithValue("@owner_password", vendor.OwnerPassword);
+            command.Parameters.AddWithValue("@owner_phone", vendor.OwnerPhone);
+            command.Parameters.AddWithValue("@vendor_type", vendor.Type);
+            command.Parameters.AddWithValue("@deleted", "n");
+            command.Prepare();
 
-                await command.ExecuteNonQueryAsync();
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
+            await command.ExecuteNonQueryAsync();
+
+            command.CommandText = "SELECT LAST_INSERT_ID();";
+            var insertedId = Convert.ToInt32(await command.ExecuteScalarAsync());
+            connection.Close();
+            return insertedId;
         }
 
         public async Task DeleteVendorAsync(int id)
@@ -315,7 +356,7 @@ namespace api
                 where e.event_id not in (
                     select u.event_id
                     from uses u
-                    where u.vendor_id = 1
+                    where u.vendor_id = @vendor_id
                     and u.deleted = 'n'
                 )
                 order by e.event_id;", connection);
@@ -579,7 +620,7 @@ namespace api
             }
         }
 
-        public async Task<List<Booth>> GetAllBoothsAsync()
+        public async Task<List<Booth>> GetAllBoothsAsync(int eventID)
         {
             DotNetEnv.Env.Load();
             string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
@@ -588,7 +629,17 @@ namespace api
             using var connection = new MySqlConnection(cs);
             await connection.OpenAsync();
 
-            using var command = new MySqlCommand(@"SELECT * FROM o8gync8ricmopt1y.booth where deleted = 'n';", connection);
+            using var command = new MySqlCommand(@"
+            SELECT b.booth_id, b.booth_num, b.deleted
+            FROM booth b
+            WHERE b.deleted = 'n'
+            AND b.booth_id NOT IN (
+                SELECT u.booth_id
+                FROM uses u
+                WHERE u.event_id = @event_id)",
+            connection);
+
+            command.Parameters.AddWithValue("@event_id", eventID);
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -597,8 +648,7 @@ namespace api
                 {
                     ID = reader.GetInt32(0),
                     BoothNumber = reader.GetInt32(1),
-                    BoothAvailability = reader.GetString(2),
-                    Deleted = reader.GetString(3)
+                    Deleted = reader.GetString(2)
                 });
             }
             return booths;
@@ -622,8 +672,7 @@ namespace api
                 {
                     ID = reader.GetInt32(0),
                     BoothNumber = reader.GetInt32(1),
-                    BoothAvailability = reader.GetString(2),
-                    Deleted = reader.GetString(3)
+                    Deleted = reader.GetString(2)
                 };
                 return booth;
             }
@@ -642,11 +691,10 @@ namespace api
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
 
-                string sql = $"insert into o8gync8ricmopt1y.booth (booth_num, booth_avail, deleted) values (@booth_num, @booth_avail, @deleted);";
+                string sql = $"insert into o8gync8ricmopt1y.booth (booth_num, deleted) values (@booth_num, @deleted);";
 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@booth_num", booth.BoothNumber);
-                command.Parameters.AddWithValue("@booth_avail", "y");
                 command.Parameters.AddWithValue("@deleted", "n");
                 command.Prepare();
 
@@ -692,12 +740,11 @@ namespace api
                 using var connection = new MySqlConnection(cs);
                 await connection.OpenAsync();
 
-                string sql = "update o8gync8ricmopt1y.booth set booth_num = @booth_num, booth_avail = @booth_avail, deleted = @deleted where booth_id = @id";
+                string sql = "update o8gync8ricmopt1y.booth set booth_num = @booth_num, deleted = @deleted where booth_id = @id";
 
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@id", booth.ID);
                 command.Parameters.AddWithValue("@booth_num", booth.BoothNumber);
-                command.Parameters.AddWithValue("@booth_avail", booth.BoothAvailability);
                 command.Parameters.AddWithValue("@deleted", "n");
                 command.Prepare();
 
@@ -1352,5 +1399,82 @@ namespace api
                 Console.WriteLine(e.Message);
             }
         }
+
+        public async Task<List<Pending>> GetAllPendingAsync()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Pending> pendingVendors = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select * from o8gync8ricmopt1y.pending;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                pendingVendors.Add(new Pending()
+                {
+                    PendingID = reader.GetInt32(0),
+                    VendorID = reader.GetInt32(1),
+                    deleted = reader.GetString(2)
+                });
+            }
+            return pendingVendors;
+        }
+
+        public async Task InsertPendingVendor(Pending pendingVendor)
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $"insert into o8gync8ricmopt1y.pending (vendor_id, deleted) values (@vendor_id, @deleted);";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@vendor_id", pendingVendor.VendorID);
+                command.Parameters.AddWithValue("@deleted", pendingVendor.deleted);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public async Task DeletePendingVendor(int pendingID)
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            try
+            {
+                using var connection = new MySqlConnection(cs);
+                await connection.OpenAsync();
+
+                string sql = $@"
+                UPDATE o8gync8ricmopt1y.pending SET deleted = 'y' WHERE vendor_id = @pending_id AND deleted = 'n';
+                ";
+
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@pending_id", pendingID);
+                command.Prepare();
+
+                await command.ExecuteNonQueryAsync();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
     }
 }

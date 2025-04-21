@@ -11,8 +11,6 @@ namespace api.Models
 
         public int BoothNumber { get; set; }
 
-        public string BoothAvailability { get; set; }
-
         public string Deleted { get; set; }
     }
 }

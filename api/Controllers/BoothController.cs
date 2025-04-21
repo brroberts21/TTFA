@@ -11,11 +11,11 @@ namespace MyApp.Namespace
     public class BoothController : ControllerBase
     {
         // GET: api/<BoothController>
-        [HttpGet]
-        public async Task<List<Booth>> GetAllBoothsAsync()
+        [HttpGet("event/{id}")]
+        public async Task<List<Booth>> GetAllBoothsAsync(int id)
         {
             Database db = new();
-            return await db.GetAllBoothsAsync();
+            return await db.GetAllBoothsAsync(id);
         }
 
         // GET api/<BoothController>/5

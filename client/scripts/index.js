@@ -1,5 +1,6 @@
 // arrays and url
 let currentAdmin = null
+let currentVendor = null
 admin = []
 booths = []
 deletions = []
@@ -37,8 +38,8 @@ function createNavbar()
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
         <div class="ms-auto d-flex gap-2">
-            <button type="button" class="btn btn-primary" id="main-btn" id="become-vendor-btn" onclick="handleBecomeAVendor()">Become A Vendor</button>
-            <button type="button" class="btn btn-primary" id="main-btn" onclick="handleLogin()">Log-In</button>
+            <a href="#" style="color: white; text-decoration: underline;" onclick="handleBecomeAVendor()">Become A Vendor</a>
+            <a href="#" style="color: white; text-decoration: underline;" onclick="handleLogin()">Log-In</a>
         </div>
     </div>
     `
@@ -298,8 +299,9 @@ function createMapModal()
     appDiv.appendChild(mapModal)
 }
 
-function vendorTableDescription()
+async function vendorTableDescription()
 {
+    const approvedVendors = await getAllApprovedVendors()
     const appDiv = document.getElementById("app")
     const space = document.createElement("br")
     appDiv.appendChild(space)
@@ -323,13 +325,14 @@ function vendorTableDescription()
     `
     appDiv.appendChild(container)
     populateTypeList()
-    handleVendorTypeDropdown(vendors)
+    handleVendorTypeDropdown(approvedVendors)
 }
 
-function populateTypeList()
+async function populateTypeList()
 {
+    const approvedVendors = await getAllApprovedVendors()
     list = document.getElementById("typeList")
-    const goodsTypes = [... new Set(vendors.map(v => v.type))]
+    const goodsTypes = [... new Set(approvedVendors.map(v => v.type))]
     goodsTypes.forEach(type =>{
         const item = document.createElement("li")
         item.textContent = type
@@ -398,7 +401,8 @@ function handleVendorTypeDropdown(list)
 
 async function vendorTable()
 {
-    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName))
+    const approvedVendors = await getAllApprovedVendors()
+    let sortedVendors = approvedVendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName))
     const appDiv = document.getElementById("app")
     const container = document.createElement("div")
     container.className = "container"
@@ -413,25 +417,32 @@ async function vendorTable()
     for(const vendor of sortedVendors)
     {
         const row = document.createElement("tr")
-        
-        const button = document.createElement("button")
-        button.id = "main-btn"
-        button.className = "btn"
-        button.textContent = "More Info"
-        button.setAttribute("data-bs-toggle", "modal")
-        button.setAttribute("data-bs-target", "#vendorInfoModal")
-        button.addEventListener("click", async () => {
+
+        const link = document.createElement("a")
+        link.id = "main-link"
+        link.href = "#"
+        link.textContent = "More Info"
+        link.style.color = "#1414D2"
+        link.setAttribute("data-bs-toggle", "modal")
+        link.setAttribute("data-bs-target", "#vendorInfoModal")
+        link.addEventListener("click", async (event) => {
+            event.preventDefault()
             await vendorInfo(vendor)
         })
-        row.appendChild(document.createElement("td")).appendChild(button)
+
+        const linkTd = document.createElement("td")
+        linkTd.appendChild(link)
+        row.appendChild(linkTd)
 
         const vendorName = document.createElement("td")
         vendorName.innerHTML = `${vendor.vendorName}`
         row.appendChild(vendorName)
+
         const vendorType = document.createElement("td")
         vendorType.innerHTML = `${vendor.type}`
-        row.appendChild(vendorType) 
-        tbody.appendChild(row)
+        row.appendChild(vendorType)
+
+        tbody.appendChild(row);
     }
 
     table.appendChild(tbody)
@@ -557,7 +568,7 @@ function AccountCreationNav()
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
         <div class="ms-auto d-flex gap-2">
-            <button type="button" class="btn btn-primary" id="main-btn" onclick="handleOnLoad()">Go Home</button>
+            <a href="#" style="color: white; text-decoration: underline;" onclick="handleOnLoad()">Go Home</a>
         </div>
     </div>
     `
@@ -798,7 +809,8 @@ function handleLogin()
         if (matchingVendor) {
             modal.hide(); 
             vendorPage(matchingVendor); 
-        } else {
+        } 
+        else {
             document.getElementById("login-output").textContent = "Invalid username or password.";
         }
 
@@ -806,15 +818,21 @@ function handleLogin()
 }
 
 // vendor home page methods
-function vendorPage(vendor)
+async function vendorPage(vendor)
 {
+    const pendingVendors = await getAllPendingVendors()
+    const approvedVendors = await getAllApprovedVendors()
+    currentVendor = vendor
     const app = document.getElementById("app");
     app.innerHTML = ""; 
+    console.log(approvedVendors)
+
+
 
     vendorPageNavbar(vendor)
-    vendorPageHeader(vendor)
+    vendorPageHeader(vendor, pendingVendors, approvedVendors)
     vendorPageContainers()
-    notAttendingTable(vendor)
+    notAttendingTable(vendor, pendingVendors, approvedVendors)
     attendingTable(vendor)
 }
 
@@ -829,9 +847,9 @@ function vendorPageNavbar(vendor)
     navbar.innerHTML = `
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
-        <div class="ms-auto d-flex gap-2">
-            <button type="button" class="btn btn-primary" id="main-btn" data-bs-toggle="modal" data-bs-target="#accountModal">Edit Account</button>
-            <button type="button" class="btn btn-primary" id="main-btn" onclick="handleOnLoad()">Sign Out</button>
+        <div class="ms-auto d-flex gap-3 align-items-center">
+            <a href="#" style="color: white; text-decoration: underline;" data-bs-toggle="modal" data-bs-target="#accountModal">Edit Account</a>
+            <a href="#" style="color: white; text-decoration: underline;" onclick="handleOnLoad()">Sign Out</a>
         </div>
     </div>
     `
@@ -839,11 +857,12 @@ function vendorPageNavbar(vendor)
     vendorAccountModal(vendor)
 }
 
-function vendorPageHeader(vendor)
+function vendorPageHeader(vendor, pendingVendors, approvedVendors)
 {
     const appDiv = document.getElementById("app")
     const container = document.createElement("div")
     container.className = "container-fluid"
+    container.innerHTML = ""; 
 
     const header = document.createElement("h2")
     header.textContent = `Welcome to the vendor portal, ${vendor.ownerFirstName}!`
@@ -851,8 +870,32 @@ function vendorPageHeader(vendor)
     container.appendChild(header)
 
     const status = document.createElement("h5")
-    status.textContent = `Vendor Status: Approved`
-    status.style.color = "rgb(5,20,100)"
+    let vendorStatus = "Unknown"
+    let statusColor = "rgb(5, 20, 100)"
+
+    const vendorId = vendor.vendorID || vendor.id
+
+    const isApproved = approvedVendors.some(v => (v.vendorID || v.id) === vendorId && v.deleted === 'n')
+    const isPending = pendingVendors.some(v => (v.vendorID || v.id) === vendorId && v.deleted === 'n')
+
+    if (isApproved) 
+    {
+        vendorStatus = "Approved"
+        statusColor = "green"
+    } 
+    else if (isPending) 
+    {
+        vendorStatus = "Pending"
+        statusColor = "goldenrod"
+    } 
+    else 
+    {
+        vendorStatus = "Rejected"
+        statusColor = "red"
+    }
+
+    status.textContent = `Vendor Status: ${vendorStatus}`
+    status.style.color = statusColor
     container.appendChild(status)
 
     appDiv.appendChild(container)
@@ -955,13 +998,19 @@ async function attendingTable(vendor)
     }
 }
 
-async function notAttendingTable(vendor)
+async function notAttendingTable(vendor, pendingVendors, approvedVendors)
 {
     const vendorID = vendor.id
     skips = await getSkippedEvents(vendorID)
     let sortedEvents = skips.sort((a, b) => new Date(a.date) - new Date(b.date))
     
     const tableDiv = document.getElementById("notAttending")
+
+    const vendorId = vendor.vendorID || vendor.id;
+    const isApproved = approvedVendors.some(v => (v.vendorID || v.id) === vendorId && v.deleted === 'n')
+    const isPending = pendingVendors.some(v => (v.vendorID || v.id) === vendorId && v.deleted === 'n')
+
+    const disableButton = !isApproved
     
     if(skips.length > 0)
     {
@@ -978,12 +1027,13 @@ async function notAttendingTable(vendor)
         const tbody = document.createElement("tbody")
         sortedEvents.forEach((event, index) => {
             const row = document.createElement("tr")
+            const disabledAttr = disableButton ? 'disabled' : ''
             row.innerHTML = `
                 <td>${event.name}</td>
                 <td>${new Date(event.date).toLocaleDateString()}</td>
                 <td>${new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                 <td>${new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                <td><button class="btn btn-primary" id="main-btn" onclick="generateSignUpModal(${vendorID}, ${event.id})">Sign Up</button></td>
+                <td><button class="btn btn-primary" id="main-btn" onclick="generateSignUpModal(${vendorID}, ${event.id})" ${disabledAttr}>Sign Up</button></td>
                 `
             tbody.appendChild(row)
         })
@@ -1093,6 +1143,13 @@ async function signUp(event, eventID, vendorID)
     if (response.ok)
     {
         alert("You're now signed up!")
+        const modalElement = document.getElementById('signUpModal')
+        const modal = bootstrap.Modal.getInstance(modalElement)
+        if (modal) 
+        {
+            modal.hide()
+        }
+        reloadVendorPage()
     }
     else
     {
@@ -1118,6 +1175,8 @@ async function cancelSignUp(eventID, vendorID, boothNumber)
     if (response.ok)
         {
             alert("Attendance was cancelled successfully!")
+            reloadVendorPage()
+            
         }
         else
         {
@@ -1282,6 +1341,12 @@ async function handleSaveVendor(event, vendorID)
     }
 }
 
+async function reloadVendorPage()
+{
+    await getData()
+    vendorPage(currentVendor)
+}
+
 // admin home page methods
 function adminPage(admin)
 {
@@ -1293,6 +1358,7 @@ function adminPage(admin)
     adminPageHeader(admin)
     adminPageContainers()
     adminVendorSection(admin) 
+    statsSection()
 }
 
 function adminPageNavbar()
@@ -1306,9 +1372,8 @@ function adminPageNavbar()
     navbar.innerHTML = `
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
-        <div class="ms-auto d-flex gap-2">
-            <button type="button" class="btn btn-primary" id="main-btn" data-bs-toggle="modal" data-bs-target="#accountModal">Edit Account</button>
-            <button type="button" class="btn btn-primary" id="main-btn" onclick="handleOnLoad()">Sign Out</button>
+        <div class="ms-auto d-flex gap-3 align-items-center">
+            <a href="#" style="color: white; text-decoration: underline;" onclick="handleOnLoad()">Sign Out</a>
         </div>
     </div>
     `
@@ -1380,7 +1445,7 @@ async function adminVendorSection(admin)
     container.id = "portalContainer"
     container.innerHTML = `
     <br>
-    <h3>Our Vendors</h3>
+    <h3 style="color: rgb(5, 20, 100)">Our Vendors</h3>
     <p>All of our pending and approved vendors are located in the table below. Use the button toggle to show either the pending vendors or the approved vendors.</p>
     <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
         <div class="btn-group" role="group" aria-label="Horizontal radio toggle button group">
@@ -1408,6 +1473,8 @@ async function adminVendorSection(admin)
     const radio1 = document.getElementById("hbtn-radio1");
     const radio2 = document.getElementById("hbtn-radio2");
 
+    const tableContainer = document.getElementById("adminVendorTableContainer");
+    tableContainer.style.minHeight = "400px";
     pendingVendorTable(admin)
 
     radio1.addEventListener("change", () => {
@@ -1663,7 +1730,7 @@ async function cancelEvent(eventID)
 async function pendingVendorTable(admin) {
     const div = document.getElementById("adminVendorTable");
     const adminVendorTableContainer = document.getElementById("adminVendorTableContainer")
-    div.innerHTML = ""
+    adminVendorTableContainer.innerHTML = ""
     const table = document.createElement("table");
     table.id = "admin-vendor-table"
     table.className = "table table-bordered";
@@ -1710,7 +1777,7 @@ async function pendingVendorTable(admin) {
 async function approvedVendorTable() {
     const div = document.getElementById("adminVendorTable");
     const adminVendorTableContainer = document.getElementById("adminVendorTableContainer")
-    div.innerHTML = ""
+    adminVendorTableContainer.innerHTML = ""
     const table = document.createElement("table");
     table.id = "admin-vendor-table"
     table.className = "table table-bordered";
@@ -1727,9 +1794,9 @@ async function approvedVendorTable() {
     table.appendChild(thead);
  
     const tbody = document.createElement("tbody");
- 
-    // const approvedVendors = await getAllVendors()
-    let sortedVendors = vendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName))
+    
+    let approvedVendors = await getAllApprovedVendors()
+    let sortedVendors = approvedVendors.sort((a, b) => a.vendorName.localeCompare(b.vendorName))
     handleVendorTypeDropdown(sortedVendors)
  
     sortedVendors.forEach((vendor) => {
@@ -1770,7 +1837,7 @@ function EventCreationNav()
     <div class="container-fluid">
         <a class="navbar-brand mb-0 h1" style="color: white" href="#" onclick="handleOnLoad()">Tuscaloosa Trade Fair Association</a>
         <div class="ms-auto d-flex gap-2">
-            <button type="button" class="btn btn-primary" id="main-btn" onclick="reloadAdminPage()">Admin Page</button>
+            <a href="#" style="color: white; text-decoration: underline;" onclick="reloadAdminPage()">Admin Page</a>
         </div>
     </div>
     `
@@ -1871,6 +1938,7 @@ async function handleAddEvent(event){
     if (response.ok)
     {
         alert("Event was created successfully!")
+        reloadAdminPage()
     }
     else
     {
@@ -1982,7 +2050,170 @@ async function deleteVendor(vendorID)
 
 async function reloadAdminPage() 
 {
+    await getData()
     adminPage(currentAdmin)
+}
+
+async function statsSection()
+{
+    const appDiv = document.getElementById("app")
+    const container = document.createElement("div")
+    container.className = "container"
+    container.id = "portalContainer"
+    container.innerHTML = `
+    <br>
+    <h3 style="color: rgb(5, 20, 100)">TTFA Stats</h3>
+    <p>Here you can view visualizations of our events and vendor data</p>
+    <div class="container mt-4">
+        <div class="row" id="statsCardsContainer">
+        
+        </div>
+    </div>
+    <div class="container" id="statsDiv">
+        
+    </div>
+    <br>
+    `
+
+    appDiv.appendChild(container)
+    await getData()
+    renderStatsCards()
+    renderVendorsPerEventChart()
+}
+
+// stats functions
+const statsOptions = {
+    vendorsPerEvent: {
+        label: "Vendors per Event",
+        fetchFunction: fetchStats("VPE"),
+        defaultChartType: "bar"
+    },
+    vendorsByCategory: {
+        label: "Vendors by Category",
+        fetchFunction: fetchStats("VPC"),
+        defaultChartType: "pie"
+    },
+    vendorsPerMonth: {
+        label: "Vendors per Month",
+        fetchFunction: fetchStats("VAPM"),
+        defaultChartType: "line"
+    },
+    vendorsPerYear: {
+        label: "Vendors per Year",
+        fetchFunction: fetchStats("VAPY"),
+        defaultChartType: "bar"
+    },
+    eventsPerMonth: {
+        label: "Events per Month",
+        fetchFunction: fetchStats("EPM"),
+        defaultChartType: "line"
+    },
+    eventsPerYear: {
+        label: "Events per Year",
+        fetchFunction: fetchStats("EPY"),
+        defaultChartType: "bar"
+    },
+    eventsPerVendorCategory: {
+        label: "Events per Vendor Category",
+        fetchFunction: fetchStats("EPC"),
+        defaultChartType: "pie"
+    }
+}
+
+function getRandomColor(opacity = 0.6) {
+    const r = Math.floor(Math.random() * 256)
+    const g = Math.floor(Math.random() * 256)
+    const b = Math.floor(Math.random() * 256)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+}
+  
+
+function renderStatsCards() {
+    const container = document.getElementById('statsCardsContainer')
+    container.innerHTML = ''
+
+    for (const [key, option] of Object.entries(statsOptions)) {
+        const col = document.createElement('div')
+        col.className = 'col-md-4 mb-4'
+
+        const card = document.createElement('div')
+        card.className = 'card shadow-sm stat-card'
+        card.style.cursor = 'pointer'
+        card.onclick = () => renderVendorsPerEventChart(key)
+
+        card.innerHTML = `
+            <div class="card-body">
+                <h5 class="card-title" style="color: rgb(5, 20, 100)">${option.label}</h5>
+                <p class="card-text">Click to view the chart for ${option.label.toLowerCase()}.</p>
+            </div>
+        `
+
+        col.appendChild(card)
+        container.appendChild(col)
+    }
+}
+
+async function fetchStats(choice)
+{
+    url = baseUrl + "Stats/" + choice
+    let response = await fetch(url)
+    stats = await response.json()
+    return stats
+}
+
+let currentChart;
+
+async function renderVendorsPerEventChart(optionKey) {
+    const option = statsOptions[optionKey]
+    if (!option) return
+
+    const statsDiv = document.getElementById("statsDiv")
+    statsDiv.innerHTML = ''
+
+    const canvas = document.createElement('canvas')
+    canvas.id = 'statChart';
+    canvas.style.width = "90%"
+    canvas.style.maxWidth = "900px"
+    canvas.style.height = "500px"
+    canvas.style.margin = "0 auto"
+    statsDiv.appendChild(canvas)
+
+    const data = await option.fetchFunction
+
+    const labels = data.map(d => d.label)
+    const values = data.map(d => d.dataPoint)
+
+    if (currentChart) {
+        currentChart.destroy()
+    }
+
+
+    const ctx = document.getElementById('statChart').getContext('2d')
+
+    const baseColors = labels.map(() => getRandomColor(1))
+    const backgroundColors = baseColors.map(color => color.replace('1)', '0.6)'))
+    const borderColors = baseColors
+
+    currentChart = new Chart(ctx, {
+        type: option.defaultChartType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: option.label,
+                data: values,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: option.defaultChartType === 'bar' || option.defaultChartType === 'line'
+                ? { y: { beginAtZero: false }, }
+                : {}
+        }
+    })
 }
 
 // data methods
@@ -2096,7 +2327,14 @@ async function getAllVendors()
     url = baseUrl + "Vendor"
     let response = await fetch(url)
     vendors = await response.json()
-    console.log(vendors)
+}
+
+async function getAllApprovedVendors()
+{
+    url = baseUrl + "Vendor/approved"
+    let response = await fetch(url)
+    let approvedVendors = await response.json()
+    return approvedVendors
 }
 
 async function getAllPendingVendors()

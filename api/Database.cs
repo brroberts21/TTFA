@@ -2,6 +2,7 @@ using System.Globalization;
 using api.Models;
 using MySqlConnector;
 using DotNetEnv;
+using System.Security.Cryptography.X509Certificates;
 
 namespace api
 {
@@ -16,6 +17,43 @@ namespace api
         }
         
         public async Task<List<Vendor>> GetAllVendorsAsync()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Vendor> vendors = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            SELECT * FROM o8gync8ricmopt1y.vendors
+            where deleted = 'n';
+            ", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                vendors.Add(new Vendor()
+                {
+                    ID = reader.GetInt32(0),
+                    VendorName = reader.GetString(1),
+                    VendorEmail = reader.GetString(2),
+                    VendorPhone = reader.GetString(3),
+                    VendorSocial = reader.IsDBNull(reader.GetOrdinal("vendor_social")) ? null : reader.GetString("vendor_social"),
+                    OwnerFirstName = reader.GetString(5),
+                    OwnerLastName = reader.GetString(6),
+                    OwnerEmail = reader.GetString(7),
+                    OwnerPassword = reader.GetString(8),
+                    OwnerPhone = reader.GetString(9),
+                    Type = reader.GetString(10),
+                    Deleted = reader.GetString(11)
+                });
+            }
+
+            return vendors;
+        }
+
+        public async Task<List<Vendor>> GetAllApprovedVendorsAsync()
         {
             DotNetEnv.Env.Load();
             string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
@@ -315,11 +353,7 @@ namespace api
                 from uses u join events e on u.event_id = e.event_id
                     join vendors v on v.vendor_id = u.vendor_id
                     join booth b on b.booth_id = u.booth_id
-                where u.vendor_id = @vendor_id and u.vendor_id in (
-                    select u.vendor_id
-                    from uses u
-                    where u.deleted = 'n'
-                    order by u.event_id, u.booth_id)
+                where u.vendor_id = @vendor_id and u.deleted = 'n'
                 order by u.event_id;", connection);
 
             command.Parameters.AddWithValue("@vendor_id", vendorID);
@@ -353,7 +387,7 @@ namespace api
             using var command = new MySqlCommand(@"
                 select e.event_id, e.event_name, e.event_date, e.event_start_time, e.event_end_time
                 from events e
-                where e.event_id not in (
+                where e.deleted = 'n' and e.event_id not in (
                     select u.event_id
                     from uses u
                     where u.vendor_id = @vendor_id
@@ -636,7 +670,7 @@ namespace api
             AND b.booth_id NOT IN (
                 SELECT u.booth_id
                 FROM uses u
-                WHERE u.event_id = @event_id)",
+                WHERE u.event_id = @event_id AND u.deleted = 'n')",
             connection);
 
             command.Parameters.AddWithValue("@event_id", eventID);
@@ -842,7 +876,7 @@ namespace api
             using var command = new MySqlCommand(@"
             select count(distinct vendor_id) as count
             from uses
-            where event_id = @event_id;", connection);
+            where event_id = @event_id and deleted = 'n';", connection);
 
             command.Parameters.AddWithValue("@event_id", eventID);
             command.Prepare();
@@ -1476,5 +1510,206 @@ namespace api
             }
         }
 
+        public async Task<List<Statistic>> GetVendorsPerEvent()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select event_name, count(distinct vendor_id) as count
+            from uses u join events e on u.event_id = e.event_id
+            where u.deleted = 'n'
+            group by event_name;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetString(0),
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        public async Task<List<Statistic>> GetVendorsPerCategory()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select vendor_type, count(distinct vendor_id) as count
+            from vendors
+            where deleted = 'n' and vendor_id in (
+                select vendor_id
+                from approves
+                where deleted = 'n'
+            )
+            group by vendor_type;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetString(0),
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        public async Task<List<Statistic>> GetVendorAttendancesPerMonth()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select monthname(event_date) as month,
+                count(distinct use_id) as count
+            from uses u join events e on u.event_id = e.event_id
+            where u.deleted = 'n'
+            group by month
+            order by month(event_date);", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetString(0),
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        public async Task<List<Statistic>> GetVendorAttendancesPerYear()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select year(event_date) as year,
+                count(distinct use_id) as count
+            from uses u join events e on u.event_id = e.event_id
+            where u.deleted = 'n'
+            group by year;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetInt32(0).ToString()!,
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        public async Task<List<Statistic>> GetEventsPerMonth()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select monthname(event_date) as month,
+                count(distinct event_id) as count
+            from events
+            where deleted = 'n'
+            group by month
+            order by month(event_date);", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetString(0),
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        public async Task<List<Statistic>> GetEventsPerYear()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select year(event_date) as year,
+                count(distinct event_id) as count
+            from events
+            where deleted = 'n'
+            group by year;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetInt32(0).ToString(),
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        public async Task<List<Statistic>> GetEventsPerCategory()
+        {
+            DotNetEnv.Env.Load();
+            string cs = Environment.GetEnvironmentVariable("DATABASE_URL")!;
+            List<Statistic> stats = [];
+
+            using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            using var command = new MySqlCommand(@"
+            select vendor_type, count(distinct event_id) as events
+            from vendors v join uses u on v.vendor_id = u.vendor_id
+            where u.deleted = 'n'
+            group by vendor_type;", connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new Statistic()
+                {
+                    Label = reader.GetString(0),
+                    DataPoint = reader.GetInt32(1),
+                });
+            }
+            return stats;
+        }
+
+        
+        
     }
 }

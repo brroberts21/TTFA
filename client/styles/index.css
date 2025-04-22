@@ -93,27 +93,34 @@ p, li, h5 {
 }
 
 .btn-outline-danger {
-    color: rgb(75,156,211);
-    border-color: rgb(75,156,211);
+    color: rgb(5, 20, 100);
+    border-color: rgb(5, 20, 100);
     transition: all 0.3s ease;
 }
 
 .btn-outline-danger:hover,
 .btn-outline-danger:focus,
 .btn-outline-danger.active {
-    background-color: rgb(55, 126, 181);
+    background-color: rgb(3, 10, 60); /* darker navy blue */
     color: white;
-    border-color: rgb(55, 126, 181);
+    border-color: rgb(3, 10, 60);
 }
 
 .btn-check:checked + .btn-outline-danger {
-    background-color: rgb(75,156,211);
+    background-color: rgb(5, 20, 100);
     color: white;
-    border-color: rgb(75,156,211);
+    border-color: rgb(5, 20, 100);
 }
 
 .btn-check:not(:checked) + .btn-outline-danger {
     background-color: transparent;
-    color: rgb(75,156,211);
-    border-color: rgb(75,156,211);
+    color: rgb(5, 20, 100);
+    border-color: rgb(5, 20, 100);
+}
+
+
+.stat-card:hover {
+    background-color: #f0f8ff;
+    transform: scale(1.03);
+    transition: all 0.3s ease;
 }

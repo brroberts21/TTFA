@@ -19,6 +19,13 @@ namespace MyApp.Namespace
             return await db.GetAllVendorsAsync();
         }
 
+        [HttpGet("approved")]
+        public async Task<List<Vendor>> GetAllApprovedVendorsAsync()
+        {
+            Database db = new();
+            return await db.GetAllApprovedVendorsAsync();
+        }
+
         [HttpGet("pending")]
         public async Task<List<Vendor>> GetAllPendingVendorsAsync()
         {

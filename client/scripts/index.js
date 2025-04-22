@@ -2076,7 +2076,6 @@ async function statsSection()
     `
 
     appDiv.appendChild(container)
-    await getData()
     renderStatsCards()
     renderVendorsPerEventChart()
 }
@@ -2128,7 +2127,7 @@ function getRandomColor(opacity = 0.6) {
 }
   
 
-function renderStatsCards() {
+async function renderStatsCards() {
     const container = document.getElementById('statsCardsContainer')
     container.innerHTML = ''
 
@@ -2139,7 +2138,10 @@ function renderStatsCards() {
         const card = document.createElement('div')
         card.className = 'card shadow-sm stat-card'
         card.style.cursor = 'pointer'
-        card.onclick = () => renderVendorsPerEventChart(key)
+        card.onclick = async ()  => {
+            await getData()
+            renderVendorsPerEventChart(key)
+        }
 
         card.innerHTML = `
             <div class="card-body">
@@ -2210,7 +2212,7 @@ async function renderVendorsPerEventChart(optionKey) {
             responsive: true,
             maintainAspectRatio: false,
             scales: option.defaultChartType === 'bar' || option.defaultChartType === 'line'
-                ? { y: { beginAtZero: false }, }
+                ? { y: { beginAtZero: true }, }
                 : {}
         }
     })

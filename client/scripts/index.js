@@ -2084,37 +2084,37 @@ async function statsSection()
 const statsOptions = {
     vendorsPerEvent: {
         label: "Vendors per Event",
-        fetchFunction: fetchStats("VPE"),
+        fetchFunction: () => fetchStats("VPE"),
         defaultChartType: "bar"
     },
     vendorsByCategory: {
         label: "Vendors by Category",
-        fetchFunction: fetchStats("VPC"),
+        fetchFunction: () => fetchStats("VPC"),
         defaultChartType: "pie"
     },
     vendorsPerMonth: {
         label: "Vendors per Month",
-        fetchFunction: fetchStats("VAPM"),
+        fetchFunction: () => fetchStats("VAPM"),
         defaultChartType: "line"
     },
     vendorsPerYear: {
         label: "Vendors per Year",
-        fetchFunction: fetchStats("VAPY"),
+        fetchFunction: () => fetchStats("VAPY"),
         defaultChartType: "bar"
     },
     eventsPerMonth: {
         label: "Events per Month",
-        fetchFunction: fetchStats("EPM"),
+        fetchFunction: () => fetchStats("EPM"),
         defaultChartType: "line"
     },
     eventsPerYear: {
         label: "Events per Year",
-        fetchFunction: fetchStats("EPY"),
+        fetchFunction: () => fetchStats("EPY"),
         defaultChartType: "bar"
     },
     eventsPerVendorCategory: {
         label: "Events per Vendor Category",
-        fetchFunction: fetchStats("EPC"),
+        fetchFunction: () => fetchStats("EPC"),
         defaultChartType: "pie"
     }
 }
@@ -2180,7 +2180,7 @@ async function renderVendorsPerEventChart(optionKey) {
     canvas.style.margin = "0 auto"
     statsDiv.appendChild(canvas)
 
-    const data = await option.fetchFunction
+    const data = await option.fetchFunction()
 
     const labels = data.map(d => d.label)
     const values = data.map(d => d.dataPoint)

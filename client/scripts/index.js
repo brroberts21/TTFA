@@ -1492,7 +1492,8 @@ async function adminVendorSection(admin)
     })
 }
 
-function changeButtonColors(activeBtn, inactiveBtn) {
+function changeButtonColors(activeBtn, inactiveBtn) 
+{
     activeBtn.nextElementSibling.classList.add("active");
     inactiveBtn.nextElementSibling.classList.remove("active");
 }
@@ -1822,7 +1823,7 @@ function createEventPage(admin) {
     appDiv.innerHTML = ""
     EventCreationNav(admin)
     EventCreationHeader()
-    EventCreationForm()
+    EventCreationForm(admin)
 }
 
 function EventCreationNav()
@@ -1862,7 +1863,7 @@ function EventCreationHeader()
     appDiv.appendChild(container)
 }
  
-function EventCreationForm()
+function EventCreationForm(admin)
 {
     const container = document.getElementById("login-form-container")
     const form = document.createElement("div")
@@ -1870,7 +1871,7 @@ function EventCreationForm()
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow p-4">
-                    <form onsubmit="handleAddEvent(event)">
+                    <form id="eventForm">
                         <div class="mb-3">
                             <label for="eventName" class="form-label">Event Name:</label>
                             <input type="text" class="form-control" id="eventName" name="eventName" required>
@@ -1902,11 +1903,14 @@ function EventCreationForm()
         </div>
     `
     container.appendChild(form)
+    document.getElementById("eventForm").addEventListener("submit", function(e) {
+        handleAddEvent(e)
+    })
 }
  
 async function handleAddEvent(event){
     event.preventDefault()
- 
+    const adminID = currentAdmin.id
     const name = document.getElementById("eventName").value
     const eventDescription = document.getElementById("eventDescription").value
     const eventDate = document.getElementById("eventDate").value
@@ -1926,7 +1930,7 @@ async function handleAddEvent(event){
         "Deleted": "n"
     }
     
-    const url = baseUrl + "Event"
+    const url = baseUrl + `Event/${adminID}`
     const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -2025,7 +2029,7 @@ async function unpendVendor(vendorID)
 
 async function deleteVendor(vendorID)
 {
-    if(confirm("Are you sure you want to deny this vendor?")){
+    if(confirm("Are you sure you want to delete this vendor?")){
         console.log(vendorID)
     }
 
@@ -2039,12 +2043,12 @@ async function deleteVendor(vendorID)
     })
     if (response.ok)
         {
-            alert("Vendor was denied successfully!")
+            alert("Vendor was delete successfully!")
             reloadAdminPage()
         }
         else
         {
-            alert("Failed to deny vendor.")
+            alert("Failed to delete vendor.")
         }
 }
 
@@ -2222,7 +2226,6 @@ async function renderVendorsPerEventChart(optionKey) {
 async function getData()
 {
     await getAllAdmin()
-    await getAllDeletions()
     await getAllEvents()
     await getAllManagers()
     await getAllUsers()
@@ -2246,22 +2249,12 @@ async function getAllApprovals()
     console.log(approvals)
 }
 
-// booth data methods
 async function getAllBooths(id)
 {
     url = baseUrl + "Booth/event/" + id
     let response = await fetch(url)
     booths = await response.json()
     return booths
-}
-
-// deletion data methods
-async function getAllDeletions()
-{
-    url = baseUrl + "Deletes"
-    let response = await fetch(url)
-    deletions = await response.json()
-    console.log(deletions)
 }
 
 // event data methods

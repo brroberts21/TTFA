@@ -26,6 +26,7 @@ namespace MyApp.Namespace
             return singleEvent;
         }
 
+        // These are for the vendor page to show events that vendor is/isn't attending
         // GET api/<Event>/vendor/5
         [HttpGet("vendor/{vendorID}")]
         public async Task<List<Event>> GetVendorEvents(int vendorID)
@@ -42,11 +43,21 @@ namespace MyApp.Namespace
         } 
 
         // POST api/<EventController>
-        [HttpPost]
-        public async Task PostEventAsync([FromBody] Event newEvent)
+        [HttpPost("{adminID}")]
+        public async Task PostEventAsync([FromBody] Event newEvent, int adminID)
         {
             Database db = new();
-            await db.InsertEventAsync(newEvent);
+            int eventID = await db.InsertEventAsync(newEvent);
+
+            Manages manager = new Manages()
+            {
+                AdminID = adminID,
+                EventID = eventID,
+                AdminName = "",
+                EventName = "",
+                Deleted = "n"
+            };
+            await db.InsertManageAsync(manager);
         }
 
         // PUT api/<EventController>/5

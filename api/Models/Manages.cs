@@ -7,6 +7,8 @@ namespace api.Models
 {
     public class Manages
     {
+        public int ManageID { get; set; }
+        
         public int AdminID { get; set; }
 
         public int EventID { get; set; }
